@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flutter_bluetooth_serial: ^0.4.0
+  flutter_bluetooth_serial: ^0.4.2
   permission_handler: ^11.3.1
   shared_preferences: ^2.2.2
   url_launcher: ^6.2.1
@@ -32,6 +32,6 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "images/icon.png"  # ← GAMITIN MO ITO (OR logo.png)
+  image_path: "images/icon.png"
   adaptive_icon_background: "#2E7D32"
-  adaptive_icon_foreground: "images/icon.png"  # ← ITO RIN
+  adaptive_icon_foreground: "images/icon.png"
