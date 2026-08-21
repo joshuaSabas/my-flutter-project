@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flutter_bluetooth_serial: ^0.4.0
+ flutter_bluetooth_serial_plus: ^0.5.6
   permission_handler: ^11.3.1
   shared_preferences: ^2.2.2
   url_launcher: ^6.2.1
