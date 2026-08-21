@@ -22,6 +22,13 @@ class DatabaseHelper {
       'ph': reading.ph,
       'timestamp': reading.timestamp.toIso8601String(),
       'feedback': 0,
+      // 🔥 BAGONG FIELDS
+      'fertilizerType': reading.fertilizerType ?? '',
+      'fertilizerImageUrl': reading.fertilizerImageUrl ?? '',
+      'alternativeType': reading.alternativeType ?? '',
+      'recommendedSacks': reading.recommendedSacks ?? 0,
+      'amount': reading.amount ?? '',
+      'npkAnalysis': reading.npkAnalysis ?? '',
     };
 
     existing.add(jsonEncode(data));
@@ -45,6 +52,13 @@ class DatabaseHelper {
           ph: data['ph'] ?? '--',
           timestamp: DateTime.parse(data['timestamp']),
           feedback: data['feedback'] == 1 ? true : false,
+          // 🔥 BAGONG FIELDS
+          fertilizerType: data['fertilizerType'] ?? '',
+          fertilizerImageUrl: data['fertilizerImageUrl'] ?? '',
+          alternativeType: data['alternativeType'] ?? '',
+          recommendedSacks: data['recommendedSacks'] ?? 0,
+          amount: data['amount'] ?? '',
+          npkAnalysis: data['npkAnalysis'] ?? '',
         ));
       } catch (e) {}
     }
@@ -60,7 +74,9 @@ class DatabaseHelper {
     List<String> updated = [];
     for (String item in existing) {
       Map<String, dynamic> data = jsonDecode(item);
-      if (data['id'] == id) data['feedback'] = isThumbsUp ? 1 : 0;
+      if (data['id'] == id) {
+        data['feedback'] = isThumbsUp ? 1 : 0;
+      }
       updated.add(jsonEncode(data));
     }
     await prefs.setStringList(_key, updated);
