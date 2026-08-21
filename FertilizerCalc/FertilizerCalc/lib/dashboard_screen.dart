@@ -633,7 +633,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade700,
+                          color: const Color(0xFF1565C0),  // Instead of Colors.blue.shade700
                         ),
                       ),
                       const SizedBox(height: 6),
