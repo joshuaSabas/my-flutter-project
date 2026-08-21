@@ -20,8 +20,6 @@ android {
 
     defaultConfig {
         applicationId = "com.fertilizercalc.app"
-        
-        // 🔥 I-MANUAL SET MO ITO!
         minSdk = 21
         targetSdk = 36
         versionCode = 1
