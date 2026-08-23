@@ -33,6 +33,14 @@ jobs:
         working-directory: FertilizerCalc/FertilizerCalc
         run: flutter pub get
 
+      - name: Generate Launcher Icons
+        working-directory: FertilizerCalc/FertilizerCalc
+        run: dart run flutter_launcher_icons
+
+      - name: Generate Black Splash Screen
+        working-directory: FertilizerCalc/FertilizerCalc
+        run: dart run flutter_native_splash:create
+
       - name: Build APK
         working-directory: FertilizerCalc/FertilizerCalc
         run: flutter build apk --release
