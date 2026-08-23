@@ -136,91 +136,97 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _connectToDevice() async {
+  setState(() {
+    _isLoading = true;
+    _errorMessage = '';
+  });
+
+  try {
+    // ✅ 1. CHECK BLUETOOTH STATUS
+    final isEnabled = await _bluetoothService.isBluetoothEnabled();
+    if (!isEnabled) {
+      final enabled = await _bluetoothService.requestEnableBluetooth();
+      if (!enabled) {
+        setState(() {
+          _errorMessage = 'Bluetooth must be enabled to connect';
+          _isLoading = false;
+        });
+        _showBluetoothDisabledDialog();  // ← ITO ANG IDADAGDAG!
+        return;
+      }
+    }
+
+    // ✅ 2. CHECK PERMISSIONS
+    final hasPermissions = await BluetoothPermissions.requestPermissions();
+    if (!hasPermissions) {
+      setState(() {
+        _errorMessage = 'Bluetooth permissions are required';
+        _isLoading = false;
+      });
+      return;
+    }
+
+    // ✅ 3. SCAN DEVICES
     setState(() {
-      _isLoading = true;
-      _errorMessage = '';
+      _isScanning = true;
     });
 
-    try {
-      final isEnabled = await _bluetoothService.isBluetoothEnabled();
-      if (!isEnabled) {
-        final enabled = await _bluetoothService.requestEnableBluetooth();
-        if (!enabled) {
-          setState(() {
-            _errorMessage = 'Bluetooth must be enabled to connect';
-            _isLoading = false;
-          });
-          return;
-        }
-      }
+    final devices = await _bluetoothService.scanDevices();
 
-      final hasPermissions = await BluetoothPermissions.requestPermissions();
-      if (!hasPermissions) {
-        setState(() {
-          _errorMessage = 'Bluetooth permissions are required';
-          _isLoading = false;
-        });
-        return;
-      }
+    setState(() {
+      _isScanning = false;
+    });
 
+    if (devices.isEmpty) {
       setState(() {
-        _isScanning = true;
-      });
-
-      final devices = await _bluetoothService.scanDevices();
-
-      setState(() {
-        _isScanning = false;
-      });
-
-      if (devices.isEmpty) {
-        setState(() {
-          _errorMessage = 'No Bluetooth devices found';
-          _isLoading = false;
-        });
-        return;
-      }
-
-      final selectedDevice = await BluetoothDialog.show(
-        context: context,
-        devices: devices,
-      );
-
-      if (selectedDevice == null) {
-        setState(() {
-          _isLoading = false;
-        });
-        return;
-      }
-
-      final connected = await _bluetoothService.connect(selectedDevice);
-      if (connected) {
-        setState(() {
-          _isConnected = true;
-          _deviceName = selectedDevice.name ?? 'Soil Sensor';
-          _isLoading = false;
-        });
-        _startListeningForData();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Connected to ${selectedDevice.name}'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        setState(() {
-          _errorMessage = 'Failed to connect to ${selectedDevice.name}';
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Connection error: $e';
+        _errorMessage = 'No Bluetooth devices found';
         _isLoading = false;
-        _isScanning = false;
+      });
+      return;
+    }
+
+    // ✅ 4. SELECT DEVICE
+    final selectedDevice = await BluetoothDialog.show(
+      context: context,
+      devices: devices,
+    );
+
+    if (selectedDevice == null) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+
+    // ✅ 5. CONNECT
+    final connected = await _bluetoothService.connect(selectedDevice);
+    if (connected) {
+      setState(() {
+        _isConnected = true;
+        _deviceName = selectedDevice.name ?? 'Soil Sensor';
+        _isLoading = false;
+      });
+      _startListeningForData();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Connected to ${selectedDevice.name}'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      setState(() {
+        _errorMessage = 'Failed to connect to ${selectedDevice.name}';
+        _isLoading = false;
       });
     }
+  } catch (e) {
+    setState(() {
+      _errorMessage = 'Connection error: $e';
+      _isLoading = false;
+      _isScanning = false;
+    });
   }
+}
 
   void _startListeningForData() {
     final connection = _bluetoothService.connection;
@@ -313,6 +319,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     }
   }
+
+  // ============================================
+// BLUETOOTH DISABLED DIALOG
+// ============================================
+void _showBluetoothDisabledDialog() {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text(
+          "Bluetooth Required",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Bluetooth is not enabled on your device.",
+              style: TextStyle(fontSize: 14),
+            ),
+            SizedBox(height: 8),
+            Text(
+              "Please turn on Bluetooth first to connect to the soil sensor.",
+              style: TextStyle(fontSize: 13, color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _connectToDevice();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+            ),
+            child: const Text("Try Again"),
+          ),
+        ],
+      );
+    },
+  );
+}
 
   @override
   void dispose() {
