@@ -21,6 +21,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
   flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.1 # Idinagdag para sa itim na screen
 
 flutter:
   uses-material-design: true
@@ -29,9 +30,15 @@ flutter:
     - images/
     - assets/fertilizer_rules.json
 
+# Configuration para sa App Icon
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "images/icon.png"
-  adaptive_icon_background: "#2E7D32"
-  adaptive_icon_foreground: "images/icon.png"
+  image_path: "images/icon.png" # Siguraduhing "icon.png" ang file name sa iyong images folder
+
+# Configuration para sa Itim na Screen (Splash Screen)
+flutter_native_splash:
+  color: "#000000" # Gagawing purong itim ang screen
+  # Walang image_path na nilagay dito kaya walang Flutter logo o kahit anong logo na lalabas
+  android_12:
+    color: "#000000" # Para sa mga bagong bersyon ng Android
