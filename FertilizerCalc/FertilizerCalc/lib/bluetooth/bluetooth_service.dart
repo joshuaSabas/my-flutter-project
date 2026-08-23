@@ -1,5 +1,6 @@
 import 'package:flutter_bluetooth_serial_plus/flutter_bluetooth_serial_plus.dart';
 import 'package:flutter/services.dart';
+import 'dart:typed_data';  // ← IDAGDAG ITO!
 
 class BluetoothService {
   final FlutterBluetoothSerial _bluetooth = FlutterBluetoothSerial.instance;
@@ -103,13 +104,12 @@ class BluetoothService {
   BluetoothConnection? get connection => _connection;
 
   // ============================================
-  // SEND DATA TO DEVICE
+  // SEND DATA TO DEVICE - FIXED!
   // ============================================
   void sendData(String data) {
     try {
       if (_connection != null && _connection!.isConnected) {
-        _connection!.output.add(data.codeUnits);
-        _connection!.output.allSent;
+        _connection!.output.add(Uint8List.fromList(data.codeUnits));  // ← BINAGO!
       }
     } catch (e) {
       print('Error sending data: $e');
@@ -117,13 +117,12 @@ class BluetoothService {
   }
 
   // ============================================
-  // SEND BYTES TO DEVICE
+  // SEND BYTES TO DEVICE - FIXED!
   // ============================================
   void sendBytes(List<int> bytes) {
     try {
       if (_connection != null && _connection!.isConnected) {
-        _connection!.output.add(bytes);
-        _connection!.output.allSent;
+        _connection!.output.add(Uint8List.fromList(bytes));  // ← BINAGO!
       }
     } catch (e) {
       print('Error sending bytes: $e');
