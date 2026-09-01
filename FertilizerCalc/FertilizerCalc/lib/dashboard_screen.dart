@@ -14,7 +14,12 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> 
+    with AutomaticKeepAliveClientMixin {  // ← PARA HINDI MAG-RESTART!
+
+  @override
+  bool get wantKeepAlive => true;  // ← PARA HINDI MAG-RESTART!
+
   late BluetoothService _bluetoothService;
   SensorReading? _currentReading;
   bool _isConnected = false;
@@ -62,7 +67,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       child: Row(
         children: [
-          // Floating icon with elevation effect
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -866,6 +870,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);  // ← IMPORTANTE PARA KEEP ALIVE!
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       body: SafeArea(
@@ -877,7 +883,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ==========================================
-                  // HEADER — left-aligned like the picture
+                  // HEADER — WALANG "Welcome!"
                   // ==========================================
                   Stack(
                     children: [
@@ -885,11 +891,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Image.asset(
                         "images/background.png",
                         width: double.infinity,
-                        height: 230,
+                        height: 200,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
-                            height: 230,
+                            height: 200,
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
@@ -909,7 +915,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       // Dark overlay
                       Container(
-                        height: 230,
+                        height: 200,
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
@@ -921,23 +927,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                       ),
-                      // Content — LEFT aligned like picture
+                      // Content — LEFT aligned
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(height: 20),
-                            // "Welcome!" text
-                            const Text(
-                              "Welcome!",
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 10),
                             // FertilizerCalc as text.png
                             Image.asset(
                               "images/text.png",
@@ -967,7 +963,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 );
                               },
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 4),
                             // Subtitle
                             const Text(
                               "Smart Soil Analysis &\nFertilizer Recommendation",
@@ -986,7 +982,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(height: 12),
 
                   // ==========================================
-                  // CONNECT CARD
+                  // CONNECT CARD (same as before)
                   // ==========================================
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -1084,7 +1080,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       color: Colors.red, fontSize: 12)),
                             )
                           else
-                            // Connect button WITH Bluetooth icon like picture
                             ElevatedButton.icon(
                               onPressed: _isLoading || _isScanning
                                   ? null
@@ -1127,7 +1122,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Heading + No Data badge
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -1164,7 +1158,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        // 4 parameter cards with icon + progress bar
                         Row(
                           children: [
                             _buildParameterCard(
@@ -1245,7 +1238,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  "Fertillizer Recommendation",
+                                  "Fertilizer Recommendation",
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
@@ -1264,7 +1257,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 12),
-                                // Full-width button WITH arrow icon like picture
                                 SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
@@ -1381,14 +1373,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     const SizedBox(height: 16),
                   ],
 
-                  // Extra bottom padding so floating card doesn't overlap
                   const SizedBox(height: 100),
                 ],
               ),
             ),
 
             // ==========================================
-            // BLUETOOTH STATUS BADGE — top right (FLOATING)
+            // BLUETOOTH STATUS BADGE — top right
             // ==========================================
             Positioned(
               top: 12,
@@ -1482,7 +1473,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         child: Column(
           children: [
-            // Icon + letter circle like picture
             Container(
               width: 36,
               height: 36,
@@ -1527,7 +1517,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   style:
                       const TextStyle(fontSize: 8, color: Colors.grey)),
             const SizedBox(height: 6),
-            // Progress bar at bottom like picture
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
