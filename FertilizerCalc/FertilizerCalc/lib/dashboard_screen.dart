@@ -42,7 +42,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     _bounceController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
-      repeat: true,
       reverse: true,
     );
     _bounceAnimation = Tween<double>(begin: 0, end: 0.15).animate(
