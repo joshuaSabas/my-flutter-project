@@ -9,7 +9,12 @@ class HistoryScreen extends StatefulWidget {
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
+class _HistoryScreenState extends State<HistoryScreen> 
+    with AutomaticKeepAliveClientMixin {  // ← PARA HINDI MAG-RESTART!
+
+  @override
+  bool get wantKeepAlive => true;  // ← PARA HINDI MAG-RESTART!
+
   List<SensorReading> _history = [];
   bool _isLoading = true;
 
@@ -92,6 +97,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);  // ← IMPORTANTE PARA KEEP ALIVE!
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -228,9 +235,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ================================
-                    // SOIL PARAMETERS
-                    // ================================
                     const Text(
                       "Soil Parameters:",
                       style: TextStyle(
@@ -252,9 +256,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ),
                     const Divider(height: 20),
 
-                    // ================================
-                    // FERTILIZER RECOMMENDATION
-                    // ================================
                     const Text(
                       "Recommendation:",
                       style: TextStyle(
@@ -273,7 +274,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Fertilizer Type
                           Row(
                             children: [
                               const Icon(Icons.eco, size: 16, color: Colors.green),
@@ -291,7 +291,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             ],
                           ),
                           const SizedBox(height: 4),
-                          // Alternative
                           Row(
                             children: [
                               const Icon(Icons.swap_horiz, size: 16, color: Colors.orange),
@@ -308,7 +307,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             ],
                           ),
                           const SizedBox(height: 4),
-                          // Amount / Sacks
                           Row(
                             children: [
                               const Icon(Icons.inbox, size: 16, color: Colors.blue),
@@ -324,7 +322,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               ),
                             ],
                           ),
-                          // NPK Analysis
                           if (item.npkAnalysis != null && item.npkAnalysis!.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.only(top: 4),
@@ -345,7 +342,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 ],
                               ),
                             ),
-                          // Fertilizer Image URL (if saved)
                           if (item.fertilizerImageUrl != null && item.fertilizerImageUrl!.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.only(top: 4),
@@ -371,9 +367,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ),
                     const Divider(height: 20),
 
-                    // ================================
-                    // FEEDBACK SECTION
-                    // ================================
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
