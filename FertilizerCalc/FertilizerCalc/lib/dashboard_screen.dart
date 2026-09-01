@@ -29,7 +29,6 @@ class _DashboardScreenState extends State<DashboardScreen>
   bool _isScanning = false;
   Map<String, dynamic>? _recommendationResult;
 
-  // ✅ BOUNCE ANIMATION
   late AnimationController _bounceController;
   late Animation<double> _bounceAnimation;
 
@@ -39,15 +38,16 @@ class _DashboardScreenState extends State<DashboardScreen>
     _bluetoothService = BluetoothService();
     _checkBluetoothStatus();
 
+    // ✅ TAMANG ANIMATION CONTROLLER (WALANG repeat o reverse)
     _bounceController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
-      reverse: true,
     );
-    _bounceAnimation = Tween<double>(begin: 0, end: 0.15).animate(
+    _bounceAnimation = Tween<double>(begin: 0, end: 0.10).animate(
       CurvedAnimation(parent: _bounceController, curve: Curves.easeInOut),
     );
-    _bounceController.forward();
+    // ✅ DITO NAKALAGAY ANG REPEAT!
+    _bounceController.repeat(reverse: true);
   }
 
   @override
@@ -58,16 +58,14 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   // ============================================
-  // MOISTURE REMINDER FLOATING ICON (BILOG AT GUMAGALAW)
+  // MOISTURE REMINDER FLOATING ICON
   // ============================================
   Widget _buildMoistureReminderIcon() {
     return Positioned(
       bottom: 24,
       right: 20,
       child: GestureDetector(
-        onTap: () {
-          _showMoistureReminderDialog();
-        },
+        onTap: _showMoistureReminderDialog,
         child: Transform.translate(
           offset: Offset(0, -_bounceAnimation.value * 12),
           child: Container(
@@ -100,9 +98,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  // ============================================
-  // MOISTURE REMINDER DIALOG
-  // ============================================
   void _showMoistureReminderDialog() {
     showDialog(
       context: context,
@@ -119,11 +114,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   color: Colors.blue.shade50,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.water_drop,
-                  color: Colors.blue,
-                  size: 24,
-                ),
+                child: const Icon(Icons.water_drop, color: Colors.blue, size: 24),
               ),
               const SizedBox(width: 12),
               const Text(
@@ -161,10 +152,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               onPressed: () => Navigator.pop(context),
               child: const Text(
                 "Got it",
-                style: TextStyle(
-                  color: Colors.blue,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -940,12 +928,10 @@ class _DashboardScreenState extends State<DashboardScreen>
       body: SafeArea(
         child: Stack(
           children: [
-            // MAIN SCROLLABLE CONTENT
             SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // HEADER
                   Stack(
                     children: [
                       Image.asset(
@@ -1037,7 +1023,6 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                   const SizedBox(height: 12),
 
-                  // CONNECT CARD
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Container(
@@ -1168,7 +1153,6 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                   const SizedBox(height: 24),
 
-                  // LIVE SOIL PARAMETERS
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
@@ -1255,7 +1239,6 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                   const SizedBox(height: 24),
 
-                  // FERTILIZER RECOMMENDATION
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Container(
@@ -1373,7 +1356,6 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                   const SizedBox(height: 16),
 
-                  // SOIL STATUS
                   if (_isConnected && _currentReading != null) ...[
                     Padding(
                       padding:
@@ -1426,7 +1408,6 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ),
 
-            // BLUETOOTH STATUS
             Positioned(
               top: 12,
               right: 16,
@@ -1476,7 +1457,6 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ),
 
-            // ✅ MOISTURE REMINDER FLOATING ICON (BILOG AT GUMAGALAW)
             _buildMoistureReminderIcon(),
           ],
         ),
