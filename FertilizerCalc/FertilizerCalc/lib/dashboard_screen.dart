@@ -15,10 +15,10 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> 
-    with AutomaticKeepAliveClientMixin {  // ← PARA HINDI MAG-RESTART!
+    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
 
   @override
-  bool get wantKeepAlive => true;  // ← PARA HINDI MAG-RESTART!
+  bool get wantKeepAlive => true;
 
   late BluetoothService _bluetoothService;
   SensorReading? _currentReading;
@@ -29,93 +29,154 @@ class _DashboardScreenState extends State<DashboardScreen>
   bool _isScanning = false;
   Map<String, dynamic>? _recommendationResult;
 
+  // ✅ BOUNCE ANIMATION
+  late AnimationController _bounceController;
+  late Animation<double> _bounceAnimation;
+
   @override
   void initState() {
     super.initState();
     _bluetoothService = BluetoothService();
     _checkBluetoothStatus();
+
+    _bounceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+      repeat: true,
+      reverse: true,
+    );
+    _bounceAnimation = Tween<double>(begin: 0, end: 0.15).animate(
+      CurvedAnimation(parent: _bounceController, curve: Curves.easeInOut),
+    );
+    _bounceController.forward();
+  }
+
+  @override
+  void dispose() {
+    _bounceController.dispose();
+    _bluetoothService.disconnect();
+    super.dispose();
   }
 
   // ============================================
-  // MOISTURE REMINDER - FLOATING WIDGET
+  // MOISTURE REMINDER FLOATING ICON (BILOG AT GUMAGALAW)
   // ============================================
-  Widget _buildMoistureReminder() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFE3F2FD), Color(0xFFBBDEFB), Color(0xFF81D4FA)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.blue.shade300, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue.shade300.withOpacity(0.5),
-            blurRadius: 20,
-            spreadRadius: 2,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: Colors.white.withOpacity(0.9),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
+  Widget _buildMoistureReminderIcon() {
+    return Positioned(
+      bottom: 24,
+      right: 20,
+      child: GestureDetector(
+        onTap: () {
+          _showMoistureReminderDialog();
+        },
+        child: Transform.translate(
+          offset: Offset(0, -_bounceAnimation.value * 12),
+          child: Container(
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1565C0), Color(0xFF42A5F5)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
                   color: Colors.blue.shade300.withOpacity(0.5),
-                  blurRadius: 16,
-                  spreadRadius: 2,
-                  offset: const Offset(0, 6),
+                  blurRadius: 20,
+                  spreadRadius: 4,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
             child: const Icon(
               Icons.water_drop,
-              color: Color(0xFF1565C0),
-              size: 28,
+              color: Colors.white,
+              size: 30,
             ),
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "💧 Keep soil moist, not waterlogged",
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF0D47A1),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  "Water early morning or late afternoon",
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFF1565C0),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
+  // ============================================
+  // MOISTURE REMINDER DIALOG
+  // ============================================
+  void _showMoistureReminderDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.water_drop,
+                  color: Colors.blue,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                "💧 Moisture Reminder",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "🌱 Keep soil moist, but not waterlogged.",
+                style: TextStyle(fontSize: 15),
+              ),
+              SizedBox(height: 8),
+              Text(
+                "⏰ Water early morning or late afternoon.",
+                style: TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+              SizedBox(height: 4),
+              Text(
+                "💧 This helps prevent evaporation and root rot.",
+                style: TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                "Got it",
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ============================================
+  // GOOGLE SEARCH
+  // ============================================
   Future<void> _launchGoogleSearch(String url) async {
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url));
@@ -129,6 +190,9 @@ class _DashboardScreenState extends State<DashboardScreen>
     }
   }
 
+  // ============================================
+  // BLUETOOTH FUNCTIONS
+  // ============================================
   Future<void> _checkBluetoothStatus() async {
     try {
       final isEnabled = await _bluetoothService.isBluetoothEnabled();
@@ -373,12 +437,9 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  @override
-  void dispose() {
-    _bluetoothService.disconnect();
-    super.dispose();
-  }
-
+  // ============================================
+  // STATUS FUNCTIONS
+  // ============================================
   int _getStatusN(int n) {
     if (n < 30) return 0;
     if (n <= 60) return 2;
@@ -439,6 +500,9 @@ class _DashboardScreenState extends State<DashboardScreen>
     }
   }
 
+  // ============================================
+  // RECOMMENDATION
+  // ============================================
   Future<void> _getRecommendation() async {
     if (_currentReading == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -870,24 +934,21 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);  // ← IMPORTANTE PARA KEEP ALIVE!
+    super.build(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       body: SafeArea(
         child: Stack(
           children: [
-            // ── MAIN SCROLLABLE CONTENT ──
+            // MAIN SCROLLABLE CONTENT
             SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ==========================================
-                  // HEADER — WALANG "Welcome!"
-                  // ==========================================
+                  // HEADER
                   Stack(
                     children: [
-                      // Background image
                       Image.asset(
                         "images/background.png",
                         width: double.infinity,
@@ -913,7 +974,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                           );
                         },
                       ),
-                      // Dark overlay
                       Container(
                         height: 200,
                         decoration: BoxDecoration(
@@ -927,14 +987,12 @@ class _DashboardScreenState extends State<DashboardScreen>
                           ),
                         ),
                       ),
-                      // Content — LEFT aligned
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 10),
-                            // FertilizerCalc as text.png
                             Image.asset(
                               "images/text.png",
                               height: 48,
@@ -964,7 +1022,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                               },
                             ),
                             const SizedBox(height: 4),
-                            // Subtitle
                             const Text(
                               "Smart Soil Analysis &\nFertilizer Recommendation",
                               style: TextStyle(
@@ -981,9 +1038,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                   const SizedBox(height: 12),
 
-                  // ==========================================
-                  // CONNECT CARD (same as before)
-                  // ==========================================
+                  // CONNECT CARD
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Container(
@@ -1114,9 +1169,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                   const SizedBox(height: 24),
 
-                  // ==========================================
                   // LIVE SOIL PARAMETERS
-                  // ==========================================
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
@@ -1203,9 +1256,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                   const SizedBox(height: 24),
 
-                  // ==========================================
-                  // FERTILIZER RECOMMENDATION CARD
-                  // ==========================================
+                  // FERTILIZER RECOMMENDATION
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Container(
@@ -1323,9 +1374,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                   const SizedBox(height: 16),
 
-                  // ==========================================
-                  // SOIL STATUS (only when connected)
-                  // ==========================================
+                  // SOIL STATUS
                   if (_isConnected && _currentReading != null) ...[
                     Padding(
                       padding:
@@ -1378,9 +1427,7 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ),
 
-            // ==========================================
-            // BLUETOOTH STATUS BADGE — top right
-            // ==========================================
+            // BLUETOOTH STATUS
             Positioned(
               top: 12,
               right: 16,
@@ -1430,15 +1477,8 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ),
 
-            // ==========================================
-            // MOISTURE REMINDER — FLOATING at bottom
-            // ==========================================
-            Positioned(
-              bottom: 16,
-              left: 0,
-              right: 0,
-              child: _buildMoistureReminder(),
-            ),
+            // ✅ MOISTURE REMINDER FLOATING ICON (BILOG AT GUMAGALAW)
+            _buildMoistureReminderIcon(),
           ],
         ),
       ),
