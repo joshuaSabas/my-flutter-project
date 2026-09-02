@@ -1,3 +1,4 @@
+import 'dart:ui';  // ← IDAGDAG ITO!
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
@@ -34,7 +35,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               ),
             ),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
+              filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),  // ← GUMAGANA NA!
               child: Container(
                 color: Colors.black.withOpacity(0.3),
               ),
