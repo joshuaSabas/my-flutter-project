@@ -6,6 +6,7 @@ import 'models/sensor_reading.dart';
 import 'services/recommendation_service.dart';
 import 'database/database_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'directions_screen.dart'; // 👈 DAGDAG ITO
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -38,7 +39,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     _bluetoothService = BluetoothService();
     _checkBluetoothStatus();
 
-    // ✅ TAMANG ANIMATION CONTROLLER (WALANG repeat o reverse)
     _bounceController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -46,7 +46,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     _bounceAnimation = Tween<double>(begin: 0, end: 0.10).animate(
       CurvedAnimation(parent: _bounceController, curve: Curves.easeInOut),
     );
-    // ✅ DITO NAKALAGAY ANG REPEAT!
     _bounceController.repeat(reverse: true);
   }
 
@@ -55,6 +54,169 @@ class _DashboardScreenState extends State<DashboardScreen>
     _bounceController.dispose();
     _bluetoothService.disconnect();
     super.dispose();
+  }
+
+  // ============================================
+  // DRAWER - DAGDAG ITO
+  // ============================================
+  Widget _buildDrawer() {
+    return Drawer(
+      child: Container(
+        color: Colors.white,
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.agriculture,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "FertilizerCalc",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            "v1.0.0",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.bluetooth,
+                          size: 14,
+                          color: _isConnected ? Colors.greenAccent : Colors.white54,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _isConnected ? "Sensor Connected" : "No Sensor",
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: _isConnected ? Colors.greenAccent : Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(Icons.dashboard, color: Colors.green),
+              title: const Text(
+                "Dashboard",
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              trailing: Container(
+                width: 4,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.directions, color: Colors.grey),
+              title: const Text("Directions"),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DirectionsScreen()),
+                );
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.history, color: Colors.grey),
+              title: const Text("History"),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('History feature coming soon!'),
+                    backgroundColor: Colors.blue,
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings, color: Colors.grey),
+              title: const Text("Settings"),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Settings feature coming soon!'),
+                    backgroundColor: Colors.blue,
+                  ),
+                );
+              },
+            ),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(Icons.eco, size: 16, color: Colors.green.shade300),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "Smart Soil Analysis",
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // ============================================
@@ -925,6 +1087,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
+      drawer: _buildDrawer(), // 👈 DAGDAG ITO
       body: SafeArea(
         child: Stack(
           children: [
@@ -978,33 +1141,53 @@ class _DashboardScreenState extends State<DashboardScreen>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 10),
-                            Image.asset(
-                              "images/text.png",
-                              height: 48,
-                              errorBuilder: (context, error, stackTrace) {
-                                return RichText(
-                                  text: const TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: "Fertilizer",
-                                        style: TextStyle(
-                                          fontSize: 34,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
+                            Row(
+                              children: [
+                                // 👈 ITO ANG HAMBURGER ICON SA LEFT SIDE NG BACKGROUND.PNG
+                                Builder(
+                                  builder: (context) {
+                                    return IconButton(
+                                      icon: const Icon(
+                                        Icons.menu,
+                                        color: Colors.white,
+                                        size: 30,
                                       ),
-                                      TextSpan(
-                                        text: "Calc",
-                                        style: TextStyle(
-                                          fontSize: 34,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF76FF03),
-                                        ),
+                                      onPressed: () {
+                                        Scaffold.of(context).openDrawer();
+                                      },
+                                    );
+                                  },
+                                ),
+                                const SizedBox(width: 4),
+                                Image.asset(
+                                  "images/text.png",
+                                  height: 48,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return RichText(
+                                      text: const TextSpan(
+                                        children: [
+                                          TextSpan(
+                                            text: "Fertilizer",
+                                            style: TextStyle(
+                                              fontSize: 34,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          TextSpan(
+                                            text: "Calc",
+                                            style: TextStyle(
+                                              fontSize: 34,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF76FF03),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                );
-                              },
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 4),
                             const Text(
@@ -1023,6 +1206,9 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                   const SizedBox(height: 12),
 
+                  // ============================================
+                  // EXACT COPY NG EXISTING CODE - WALANG BINAGO
+                  // ============================================
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Container(
