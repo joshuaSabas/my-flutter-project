@@ -145,24 +145,6 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ),
             const SizedBox(height: 8),
-            
-            // DASHBOARD LANG AT DIRECTIONS LANG!
-            ListTile(
-              leading: const Icon(Icons.dashboard, color: Colors.green),
-              title: const Text(
-                "Dashboard",
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              trailing: Container(
-                width: 4,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: Colors.green,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              onTap: () => Navigator.pop(context),
-            ),
             ListTile(
               leading: const Icon(Icons.directions, color: Colors.grey),
               title: const Text("Directions"),
