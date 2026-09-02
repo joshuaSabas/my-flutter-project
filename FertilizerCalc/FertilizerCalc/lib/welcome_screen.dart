@@ -16,12 +16,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,  // ✅ TRANSPARENT BACKGROUND
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // ==========================================
           // BLURRED BACKGROUND
-          // ==========================================
           Container(
             width: double.infinity,
             height: double.infinity,
@@ -43,9 +41,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ),
           ),
 
-          // ==========================================
-          // MAIN CONTENT (CENTERED)
-          // ==========================================
+          // MAIN CONTENT
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
@@ -66,9 +62,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ==========================================
-                    // X BUTTON (TOP RIGHT)
-                    // ==========================================
+                    // X BUTTON
                     Align(
                       alignment: Alignment.topRight,
                       child: GestureDetector(
@@ -90,9 +84,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
                     const SizedBox(height: 8),
 
-                    // ==========================================
-                    // LOGO / IMAGE
-                    // ==========================================
+                    // LOGO
                     Container(
                       width: 120,
                       height: 120,
@@ -117,9 +109,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
                     const SizedBox(height: 16),
 
-                    // ==========================================
                     // WELCOME TEXT
-                    // ==========================================
                     const Text(
                       'Welcome to',
                       textAlign: TextAlign.center,
@@ -153,9 +143,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
                     const SizedBox(height: 24),
 
-                    // ==========================================
                     // TERMS OF AGREEMENT
-                    // ==========================================
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
@@ -192,7 +180,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             'The fertilizer recommendations provided by '
                             'the application are based on the soil data '
                             'received by the system and are intended as '
-                            'a guide for fertilizer selection for pechay.',
+                            'a guide for fertilizer selection.',
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.black87,
@@ -205,9 +193,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
                     const SizedBox(height: 20),
 
-                    // ==========================================
                     // CHECKBOX
-                    // ==========================================
                     Row(
                       children: [
                         Checkbox(
@@ -243,9 +229,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
                     const SizedBox(height: 16),
 
-                    // ==========================================
                     // PROCEED BUTTON
-                    // ==========================================
                     SizedBox(
                       width: double.infinity,
                       height: 50,
