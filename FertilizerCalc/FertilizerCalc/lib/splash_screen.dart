@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
+import 'welcome_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -82,9 +84,20 @@ class _SplashScreenState extends State<SplashScreen>
     _logoController.forward();
     _bgController.forward();
 
+    // ✅ CHECK WELCOME STATUS AFTER SPLASH
     Timer(const Duration(milliseconds: 3500), () {
       if (!mounted) return;
+      _navigateToNext();
+    });
+  }
 
+  Future<void> _navigateToNext() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenWelcome = prefs.getBool('hasSeenWelcome') ?? false;
+
+    if (!mounted) return;
+
+    if (hasSeenWelcome) {
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
@@ -98,7 +111,21 @@ class _SplashScreenState extends State<SplashScreen>
           },
         ),
       );
-    });
+    } else {
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 700),
+          pageBuilder: (_, animation, __) => const WelcomeScreen(),
+          transitionsBuilder: (_, animation, __, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
+        ),
+      );
+    }
   }
 
   @override
@@ -122,7 +149,7 @@ class _SplashScreenState extends State<SplashScreen>
               Transform.scale(
                 scale: _backgroundScale.value,
                 child: Image.asset(
-                  'images/splashpage.png', // ← TAMA! WALANG assets/
+                  'images/splashpage.png',
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
@@ -163,7 +190,7 @@ class _SplashScreenState extends State<SplashScreen>
                           ],
                         ),
                         child: Image.asset(
-                          'images/logo.png', // ← TAMA! WALANG assets/
+                          'images/logo.png',
                           width: 360,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
