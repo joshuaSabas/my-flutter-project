@@ -6,7 +6,7 @@ import 'models/sensor_reading.dart';
 import 'services/recommendation_service.dart';
 import 'database/database_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'directions_screen.dart'; // 👈 DAGDAG ITO
+import 'directions_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -57,7 +57,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   // ============================================
-  // DRAWER - DAGDAG ITO
+  // DRAWER - WALANG HISTORY AT SETTINGS!
   // ============================================
   Widget _buildDrawer() {
     return Drawer(
@@ -145,6 +145,8 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ),
             const SizedBox(height: 8),
+            
+            // DASHBOARD LANG AT DIRECTIONS LANG!
             ListTile(
               leading: const Icon(Icons.dashboard, color: Colors.green),
               title: const Text(
@@ -172,33 +174,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                 );
               },
             ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.history, color: Colors.grey),
-              title: const Text("History"),
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('History feature coming soon!'),
-                    backgroundColor: Colors.blue,
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings, color: Colors.grey),
-              title: const Text("Settings"),
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Settings feature coming soon!'),
-                    backgroundColor: Colors.blue,
-                  ),
-                );
-              },
-            ),
+            
+            // WALANG HISTORY!
+            // WALANG SETTINGS!
+            // WALANG DIVIDER!
+            
             const Spacer(),
             Container(
               padding: const EdgeInsets.all(16),
@@ -1087,7 +1067,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      drawer: _buildDrawer(), // 👈 DAGDAG ITO
+      drawer: _buildDrawer(),
       body: SafeArea(
         child: Stack(
           children: [
@@ -1143,7 +1123,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                             const SizedBox(height: 10),
                             Row(
                               children: [
-                                // 👈 ITO ANG HAMBURGER ICON SA LEFT SIDE NG BACKGROUND.PNG
                                 Builder(
                                   builder: (context) {
                                     return IconButton(
@@ -1206,9 +1185,6 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                   const SizedBox(height: 12),
 
-                  // ============================================
-                  // EXACT COPY NG EXISTING CODE - WALANG BINAGO
-                  // ============================================
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Container(
