@@ -57,7 +57,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   // ============================================
-  // DRAWER - WALANG HISTORY AT SETTINGS!
+  // DRAWER - DIRECTIONS LANG!
   // ============================================
   Widget _buildDrawer() {
     return Drawer(
@@ -145,9 +145,22 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ),
             const SizedBox(height: 8),
+            
+            // DIRECTIONS LANG
             ListTile(
-              leading: const Icon(Icons.directions, color: Colors.grey),
-              title: const Text("Directions"),
+              leading: const Icon(Icons.directions, color: Colors.green),
+              title: const Text(
+                "Directions",
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              trailing: Container(
+                width: 4,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
@@ -156,10 +169,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                 );
               },
             ),
-            
-            // WALANG HISTORY!
-            // WALANG SETTINGS!
-            // WALANG DIVIDER!
             
             const Spacer(),
             Container(
@@ -928,6 +937,40 @@ class _DashboardScreenState extends State<DashboardScreen>
                     ],
                   ),
                 ),
+                // 👇 DAGDAG ITO - "CLICK HERE TO SEE MORE"
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: () {
+                    if (googleSearch.isNotEmpty) {
+                      _launchGoogleSearch(googleSearch);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.info_outline, color: Colors.blue, size: 16),
+                        const SizedBox(width: 8),
+                        const Text(
+                          "Click Here to see more about this fertilizer",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.arrow_forward, color: Colors.blue, size: 14),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -1057,6 +1100,9 @@ class _DashboardScreenState extends State<DashboardScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // ============================================
+                  // HEADER - FIXED NA!
+                  // ============================================
                   Stack(
                     children: [
                       Image.asset(
@@ -1105,24 +1151,27 @@ class _DashboardScreenState extends State<DashboardScreen>
                             const SizedBox(height: 10),
                             Row(
                               children: [
+                                // BURGER ICON - SAKTO LANG SIZE
                                 Builder(
                                   builder: (context) {
                                     return IconButton(
                                       icon: const Icon(
                                         Icons.menu,
                                         color: Colors.white,
-                                        size: 30,
+                                        size: 24,
                                       ),
                                       onPressed: () {
                                         Scaffold.of(context).openDrawer();
                                       },
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
                                     );
                                   },
                                 ),
-                                const SizedBox(width: 4),
+                                const SizedBox(width: 8),
                                 Image.asset(
                                   "images/text.png",
-                                  height: 48,
+                                  height: 42,
                                   errorBuilder: (context, error, stackTrace) {
                                     return RichText(
                                       text: const TextSpan(
@@ -1130,7 +1179,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                           TextSpan(
                                             text: "Fertilizer",
                                             style: TextStyle(
-                                              fontSize: 34,
+                                              fontSize: 30,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.white,
                                             ),
@@ -1138,7 +1187,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                           TextSpan(
                                             text: "Calc",
                                             style: TextStyle(
-                                              fontSize: 34,
+                                              fontSize: 30,
                                               fontWeight: FontWeight.bold,
                                               color: Color(0xFF76FF03),
                                             ),
@@ -1150,12 +1199,13 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 6),
                             const Text(
                               "Smart Soil Analysis &\nFertilizer Recommendation",
                               style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.white70,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black87,
                                 height: 1.4,
                               ),
                             ),
@@ -1167,6 +1217,9 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                   const SizedBox(height: 12),
 
+                  // ============================================
+                  // CONNECT TO SOIL SENSOR
+                  // ============================================
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Container(
@@ -1297,6 +1350,9 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                   const SizedBox(height: 24),
 
+                  // ============================================
+                  // LIVE SOIL PARAMETERS
+                  // ============================================
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
@@ -1383,6 +1439,9 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                   const SizedBox(height: 24),
 
+                  // ============================================
+                  // FERTILIZER RECOMMENDATION
+                  // ============================================
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Container(
@@ -1500,6 +1559,9 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                   const SizedBox(height: 16),
 
+                  // ============================================
+                  // SOIL STATUS
+                  // ============================================
                   if (_isConnected && _currentReading != null) ...[
                     Padding(
                       padding:
@@ -1552,6 +1614,9 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ),
 
+            // ============================================
+            // BLUETOOTH STATUS INDICATOR
+            // ============================================
             Positioned(
               top: 12,
               right: 16,
@@ -1601,6 +1666,9 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ),
 
+            // ============================================
+            // MOISTURE REMINDER
+            // ============================================
             _buildMoistureReminderIcon(),
           ],
         ),
