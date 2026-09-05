@@ -128,7 +128,7 @@ class ExistingDataScreen extends StatelessWidget {
                     
                     if (confirm == true) {
                       await DatabaseHelper().deleteAllData();
-                      if (mounted) {
+                      if (context.mounted) {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(builder: (_) => const DashboardScreen()),
