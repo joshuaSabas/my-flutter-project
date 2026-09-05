@@ -7,7 +7,6 @@ class SensorReading {
   final DateTime timestamp;
   bool? feedback;
   
-  // 🔥 IDAGDAG ANG MGA ITO!
   String? fertilizerType;
   String? fertilizerImageUrl;
   String? alternativeType;
@@ -31,7 +30,6 @@ class SensorReading {
     this.npkAnalysis,
   });
 
-  // Create from JSON
   factory SensorReading.fromJson(Map<String, dynamic> json) {
     return SensorReading(
       id: json['id'],
@@ -50,7 +48,6 @@ class SensorReading {
     );
   }
 
-  // Convert to JSON
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -69,7 +66,7 @@ class SensorReading {
     };
   }
 
-  // 👇 DAGDAGAN MO ITO - COPY FROM MAP (para sa database)
+  // 👇 DAGDAG ITO
   factory SensorReading.fromMap(Map<String, dynamic> map) {
     return SensorReading(
       id: map['id'],
@@ -88,7 +85,7 @@ class SensorReading {
     );
   }
 
-  // 👇 DAGDAGAN MO ITO - TO MAP (para sa database)
+  // 👇 DAGDAG ITO
   Map<String, dynamic> toMap() {
     return {
       'id': id ?? DateTime.now().millisecondsSinceEpoch,
