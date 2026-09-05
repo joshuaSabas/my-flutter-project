@@ -1089,7 +1089,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // 👈 ITO ANG IMPORTANTE!
+    super.build(context);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -1142,74 +1142,59 @@ class _DashboardScreenState extends State<DashboardScreen>
                         ),
                       ),
                       // ============================================
-                      // HEADER - FIXED NA!
+                      // HEADER - TAMA NA!
                       // ============================================
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 20, 20),
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Builder(
-                                  builder: (context) {
-                                    return IconButton(
-                                      icon: const Icon(
-                                        Icons.menu,
-                                        color: Colors.white,
-                                        size: 22,
-                                      ),
-                                      onPressed: () {
-                                        Scaffold.of(context).openDrawer();
-                                      },
-                                      padding: const EdgeInsets.all(4),
-                                      constraints: const BoxConstraints(
-                                        minWidth: 32,
-                                        minHeight: 32,
-                                      ),
-                                    );
+                            // 👇 BURGER ICON - NASA ITAAS (KALIWA)
+                            Builder(
+                              builder: (context) {
+                                return IconButton(
+                                  icon: const Icon(
+                                    Icons.menu,
+                                    color: Colors.white,
+                                    size: 28,
+                                  ),
+                                  onPressed: () {
+                                    Scaffold.of(context).openDrawer();
                                   },
-                                ),
-                                const SizedBox(width: 4),
-                                Image.asset(
-                                  "images/text.png",
-                                  height: 38,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return RichText(
-                                      text: const TextSpan(
-                                        children: [
-                                          TextSpan(
-                                            text: "Fertilizer",
-                                            style: TextStyle(
-                                              fontSize: 28,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          TextSpan(
-                                            text: "Calc",
-                                            style: TextStyle(
-                                              fontSize: 28,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF76FF03),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                );
+                              },
                             ),
-                            const SizedBox(height: 4),
+                            
+                            const SizedBox(height: 20),
+                            
+                            // 👇 TEXT.PNG - NASA BABA NG BURGER (KALIWA)
+                            Image.asset(
+                              "images/text.png",
+                              height: 50,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Text(
+                                  "FertilizerCalc",
+                                  style: TextStyle(
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                );
+                              },
+                            ),
+                            
+                            const SizedBox(height: 8),
+                            
+                            // 👇 SUBTITLE - NASA BABA PA (KALIWA)
                             const Text(
                               "Smart Soil Analysis &\nFertilizer Recommendation",
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: 14,
                                 color: Colors.white70,
-                                height: 1.3,
+                                height: 1.5,
                               ),
-                              textAlign: TextAlign.left,
                             ),
                           ],
                         ),
