@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'bluetooth/bluetooth_service.dart';
 import 'bluetooth/bluetooth_dialog.dart';
 import 'bluetooth/bluetooth_permission.dart';
@@ -937,7 +938,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                     ],
                   ),
                 ),
-                // 👇 DAGDAG ITO - "CLICK HERE TO SEE MORE"
                 const SizedBox(height: 12),
                 GestureDetector(
                   onTap: () {
@@ -992,6 +992,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     fertilizerImageUrl: imageUrl,
                     alternativeType: alternative,
                     recommendedSacks: sacks,
+                    amount: amount,
                     npkAnalysis: npk,
                   );
                   _saveToHistory(reading);
@@ -1088,7 +1089,7 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
+    super.build(context); // 👈 ITO ANG IMPORTANTE!
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -1100,9 +1101,6 @@ class _DashboardScreenState extends State<DashboardScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ============================================
-                  // HEADER - FIXED NA!
-                  // ============================================
                   Stack(
                     children: [
                       Image.asset(
@@ -1143,35 +1141,39 @@ class _DashboardScreenState extends State<DashboardScreen>
                           ),
                         ),
                       ),
+                      // ============================================
+                      // HEADER - FIXED NA!
+                      // ============================================
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+                        padding: const EdgeInsets.fromLTRB(16, 16, 20, 20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(height: 10),
                             Row(
                               children: [
-                                // BURGER ICON - SAKTO LANG SIZE
                                 Builder(
                                   builder: (context) {
                                     return IconButton(
                                       icon: const Icon(
                                         Icons.menu,
                                         color: Colors.white,
-                                        size: 24,
+                                        size: 22,
                                       ),
                                       onPressed: () {
                                         Scaffold.of(context).openDrawer();
                                       },
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(),
+                                      padding: const EdgeInsets.all(4),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 32,
+                                        minHeight: 32,
+                                      ),
                                     );
                                   },
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 4),
                                 Image.asset(
                                   "images/text.png",
-                                  height: 42,
+                                  height: 38,
                                   errorBuilder: (context, error, stackTrace) {
                                     return RichText(
                                       text: const TextSpan(
@@ -1179,7 +1181,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                           TextSpan(
                                             text: "Fertilizer",
                                             style: TextStyle(
-                                              fontSize: 30,
+                                              fontSize: 28,
                                               fontWeight: FontWeight.bold,
                                               color: Colors.white,
                                             ),
@@ -1187,7 +1189,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                           TextSpan(
                                             text: "Calc",
                                             style: TextStyle(
-                                              fontSize: 30,
+                                              fontSize: 28,
                                               fontWeight: FontWeight.bold,
                                               color: Color(0xFF76FF03),
                                             ),
@@ -1199,14 +1201,15 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 4),
                             const Text(
                               "Smart Soil Analysis &\nFertilizer Recommendation",
                               style: TextStyle(
-                                fontSize: 13,                    
+                                fontSize: 13,
                                 color: Colors.white70,
-                                height: 1.4,
+                                height: 1.3,
                               ),
+                              textAlign: TextAlign.left,
                             ),
                           ],
                         ),
