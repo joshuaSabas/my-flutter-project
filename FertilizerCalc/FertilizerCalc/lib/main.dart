@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import 'splash_screen.dart';
-import 'dashboard_screen.dart'; // 👈 PALITAN ITO! (dati home_screen)
-import 'existing_data_screen.dart'; // 👈 DAGDAG ITO!
-import 'database/database_helper.dart'; // 👈 DAGDAG ITO!
+import 'splash_screen.dart';              // 👈 WALANG FOLDER
+import 'dashboard_screen.dart';           // 👈 WALANG FOLDER
+import 'existing_data_screen.dart';       // 👈 WALANG FOLDER
+import 'database/database_helper.dart';
 
 void main() async {
-  // 👇 DAGDAG ITO PARA MA-CHECK ANG DATA
   WidgetsFlutterBinding.ensureInitialized();
   
-  // 👇 CHECK IF MAY EXISTING DATA
   final db = DatabaseHelper();
   final hasData = await db.hasExistingData();
   
@@ -31,10 +29,9 @@ class FertilizerCalcApp extends StatelessWidget {
           seedColor: const Color(0xFF2E7D32),
         ),
       ),
-      // 👇 ITO ANG BAGONG LOGIC
       home: hasExistingData 
-          ? const ExistingDataScreen()  // MAY DATA, ASK USER
-          : const SplashScreen(),       // WALANG DATA, NORMAL FLOW
+          ? const ExistingDataScreen()  // 👈 GAMITIN ITO
+          : const SplashScreen(),
     );
   }
 }
