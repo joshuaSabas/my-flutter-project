@@ -20,9 +20,6 @@ class _DirectionsScreenState extends State<DirectionsScreen> {
           'Open your phone settings and make sure Bluetooth is turned ON.',
       image: 'images/direction_bluetooth.jpg',
       bottomText: 'Bluetooth must be ON before connecting to the soil sensor.',
-      arrowX: 0.43,
-      arrowY: 0.35,
-      arrowAngle: -0.45,
     ),
     _DirectionData(
       title: 'Open FertilizerCalc',
@@ -30,9 +27,6 @@ class _DirectionsScreenState extends State<DirectionsScreen> {
           'Find the FertilizerCalc app icon on your phone and tap it to open the application.',
       image: 'images/direction_app_icon.jpg',
       bottomText: 'Tap the FertilizerCalc icon to launch the app.',
-      arrowX: 0.62,
-      arrowY: 0.45,
-      arrowAngle: 0.15,
     ),
     _DirectionData(
       title: 'Connect to Soil Sensor',
@@ -40,9 +34,6 @@ class _DirectionsScreenState extends State<DirectionsScreen> {
           'On the Dashboard, tap the Connect button to connect your soil sensor through Bluetooth.',
       image: 'images/direction_connect.jpg',
       bottomText: 'Make sure your soil sensor is powered on before connecting.',
-      arrowX: 0.77,
-      arrowY: 0.48,
-      arrowAngle: 0.55,
     ),
     _DirectionData(
       title: 'Get Fertilizer Recommendation',
@@ -51,9 +42,6 @@ class _DirectionsScreenState extends State<DirectionsScreen> {
       image: 'images/direction_recommendation.jpg',
       bottomText:
           'Get your fertilizer recommendation based on the available soil data.',
-      arrowX: 0.82,
-      arrowY: 0.61,
-      arrowAngle: 0.55,
     ),
   ];
 
@@ -321,7 +309,7 @@ class _DirectionPage extends StatelessWidget {
               const SizedBox(height: 14),
 
               // ============================================================
-              // SCREENSHOT WITH ARROW
+              // SCREENSHOT - WALANG ARROW!
               // ============================================================
               Container(
                 width: double.infinity,
@@ -344,46 +332,21 @@ class _DirectionPage extends StatelessWidget {
                   aspectRatio: 0.48,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(15),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.asset(
-                          data.image,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.grey.shade100,
-                              child: const Center(
-                                child: Icon(
-                                  Icons.image_not_supported_outlined,
-                                  size: 60,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-
-                        // ARROW
-                        Positioned(
-                          left: constraints.maxWidth * data.arrowX,
-                          top: constraints.maxWidth * data.arrowY,
-                          child: Transform.rotate(
-                            angle: data.arrowAngle,
-                            child: const Icon(
-                              Icons.arrow_back_rounded,
-                              size: 62,
-                              color: Colors.red,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.white,
-                                  blurRadius: 5,
-                                ),
-                              ],
+                    child: Image.asset(
+                      data.image,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey.shade100,
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_not_supported_outlined,
+                              size: 60,
+                              color: Colors.grey,
                             ),
                           ),
-                        ),
-                      ],
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -492,7 +455,7 @@ class _NavigationButton extends StatelessWidget {
 }
 
 // ==========================================================================
-// DATA MODEL
+// DATA MODEL - WALANG ARROW!
 // ==========================================================================
 
 class _DirectionData {
@@ -500,17 +463,11 @@ class _DirectionData {
   final String description;
   final String image;
   final String bottomText;
-  final double arrowX;
-  final double arrowY;
-  final double arrowAngle;
 
   const _DirectionData({
     required this.title,
     required this.description,
     required this.image,
     required this.bottomText,
-    required this.arrowX,
-    required this.arrowY,
-    required this.arrowAngle,
   });
 }
