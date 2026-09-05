@@ -18,7 +18,7 @@ class _DirectionsScreenState extends State<DirectionsScreen> {
       title: 'Turn On Bluetooth',
       description:
           'Open your phone settings and make sure Bluetooth is turned ON.',
-      image: 'images/direction_bluetooth.png',
+      image: 'images/direction_bluetooth.jpg',
       bottomText: 'Bluetooth must be ON before connecting to the soil sensor.',
       arrowX: 0.43,
       arrowY: 0.35,
@@ -28,7 +28,7 @@ class _DirectionsScreenState extends State<DirectionsScreen> {
       title: 'Open FertilizerCalc',
       description:
           'Find the FertilizerCalc app icon on your phone and tap it to open the application.',
-      image: 'images/direction_app_icon.png',
+      image: 'images/direction_app_icon.jpg',
       bottomText: 'Tap the FertilizerCalc icon to launch the app.',
       arrowX: 0.62,
       arrowY: 0.45,
@@ -38,7 +38,7 @@ class _DirectionsScreenState extends State<DirectionsScreen> {
       title: 'Connect to Soil Sensor',
       description:
           'On the Dashboard, tap the Connect button to connect your soil sensor through Bluetooth.',
-      image: 'images/direction_connect.png',
+      image: 'images/direction_connect.jpg',
       bottomText: 'Make sure your soil sensor is powered on before connecting.',
       arrowX: 0.77,
       arrowY: 0.48,
