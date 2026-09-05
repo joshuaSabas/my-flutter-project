@@ -69,5 +69,41 @@ class SensorReading {
     };
   }
 
-  // ... rest of existing code (getters, etc.)
+  // 👇 DAGDAGAN MO ITO - COPY FROM MAP (para sa database)
+  factory SensorReading.fromMap(Map<String, dynamic> map) {
+    return SensorReading(
+      id: map['id'],
+      nitrogen: map['nitrogen'] ?? '--',
+      phosphorus: map['phosphorus'] ?? '--',
+      potassium: map['potassium'] ?? '--',
+      ph: map['ph'] ?? '--',
+      timestamp: DateTime.parse(map['timestamp']),
+      feedback: map['feedback'] == 1 ? true : false,
+      fertilizerType: map['fertilizerType'] ?? '',
+      fertilizerImageUrl: map['fertilizerImageUrl'] ?? '',
+      alternativeType: map['alternativeType'] ?? '',
+      recommendedSacks: map['recommendedSacks'] ?? 0,
+      amount: map['amount'] ?? '',
+      npkAnalysis: map['npkAnalysis'] ?? '',
+    );
+  }
+
+  // 👇 DAGDAGAN MO ITO - TO MAP (para sa database)
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id ?? DateTime.now().millisecondsSinceEpoch,
+      'nitrogen': nitrogen,
+      'phosphorus': phosphorus,
+      'potassium': potassium,
+      'ph': ph,
+      'timestamp': timestamp.toIso8601String(),
+      'feedback': feedback == true ? 1 : 0,
+      'fertilizerType': fertilizerType ?? '',
+      'fertilizerImageUrl': fertilizerImageUrl ?? '',
+      'alternativeType': alternativeType ?? '',
+      'recommendedSacks': recommendedSacks ?? 0,
+      'amount': amount ?? '',
+      'npkAnalysis': npkAnalysis ?? '',
+    };
+  }
 }
