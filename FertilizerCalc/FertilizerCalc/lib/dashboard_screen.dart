@@ -1203,9 +1203,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                             const Text(
                               "Smart Soil Analysis &\nFertilizer Recommendation",
                               style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black87,
+                                fontSize: 13,                    
+                                color: Colors.white70,
                                 height: 1.4,
                               ),
                             ),
