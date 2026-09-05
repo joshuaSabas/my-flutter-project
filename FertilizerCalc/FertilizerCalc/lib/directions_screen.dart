@@ -48,7 +48,7 @@ class _DirectionsScreenState extends State<DirectionsScreen> {
       title: 'Get Fertilizer Recommendation',
       description:
           'After connecting the soil sensor and receiving the soil data, tap Get Recommendation.',
-      image: 'images/direction_recommendation.png',
+      image: 'images/direction_recommendation.jpg',
       bottomText:
           'Get your fertilizer recommendation based on the available soil data.',
       arrowX: 0.82,
