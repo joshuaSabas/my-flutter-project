@@ -43,6 +43,10 @@ class _DashboardScreenState extends State<DashboardScreen>
     
     _bluetoothService = BluetoothService();
     _checkBluetoothStatus();
+    
+    // 👇 I-CLEAR ANG TEST DATA!
+    _clearTestData();
+    
     _restoreState();
 
     _bounceController = AnimationController(
@@ -64,6 +68,18 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   // ============================================
+  // CLEAR TEST DATA
+  // ============================================
+  void _clearTestData() {
+    setState(() {
+      _currentReading = null;
+      _recommendationResult = null;
+      _errorMessage = '';
+    });
+    print('🧹 Test data cleared!');
+  }
+
+  // ============================================
   // APP LIFE CYCLE
   // ============================================
   
@@ -73,26 +89,20 @@ class _DashboardScreenState extends State<DashboardScreen>
     
     print('📱 App Lifecycle State: $state');
     
-    switch (state) {
-      case AppLifecycleState.resumed:
-        print('✅ App resumed - Restoring state...');
-        _isAppInBackground = false;
-        _restoreState();
-        break;
-        
-      case AppLifecycleState.inactive:
-        print('⏸️ App inactive');
-        break;
-        
-      case AppLifecycleState.paused:
-        print('⏸️ App paused - Saving state...');
-        _isAppInBackground = true;
-        _saveState();
-        break;
-        
-      case AppLifecycleState.detached:
-        print('❌ App detached');
-        break;
+    if (state == AppLifecycleState.resumed) {
+      print('✅ App resumed - Restoring state...');
+      _isAppInBackground = false;
+      _restoreState();
+    } else if (state == AppLifecycleState.paused) {
+      print('⏸️ App paused - Saving state...');
+      _isAppInBackground = true;
+      _saveState();
+    } else if (state == AppLifecycleState.inactive) {
+      print('⏸️ App inactive');
+    } else if (state == AppLifecycleState.detached) {
+      print('❌ App detached');
+    } else if (state == AppLifecycleState.hidden) {
+      print('👻 App hidden');
     }
   }
 
@@ -529,7 +539,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   // ============================================
-  // START LISTENING FOR DATA WITH PRINT STATEMENTS
+  // START LISTENING FOR DATA
   // ============================================
   void _startListeningForData() {
     final connection = _bluetoothService.connection;
@@ -590,7 +600,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   // ============================================
-  // PARSE SENSOR DATA WITH MULTIPLE FORMATS
+  // PARSE SENSOR DATA
   // ============================================
   SensorReading? _parseSensorData(List<int> data) {
     try {
@@ -607,7 +617,6 @@ class _DashboardScreenState extends State<DashboardScreen>
       String potassium = '--';
       String ph = '--';
 
-      // FORMAT 1: "N:45,P:30,K:20,pH:6.5"
       if (message.contains('N:') || message.contains('P:') || message.contains('K:') || message.contains('pH:')) {
         print('📊 Format 1: Key-value pairs');
         final parts = message.split(',');
@@ -628,7 +637,6 @@ class _DashboardScreenState extends State<DashboardScreen>
           }
         }
       }
-      // FORMAT 2: "45,30,20,6.5"
       else if (message.contains(',') && !message.contains(':')) {
         print('📊 Format 2: Numbers only');
         final parts = message.split(',');
@@ -639,26 +647,6 @@ class _DashboardScreenState extends State<DashboardScreen>
           ph = parts[3].trim();
           print('✅ Parsed: N=$nitrogen, P=$phosphorus, K=$potassium, pH=$ph');
         }
-      }
-      // FORMAT 3: "N45 P30 K20 pH6.5"
-      else if (message.contains('N') && message.contains('P') && message.contains('K')) {
-        print('📊 Format 3: No colon');
-        final RegExp nRegExp = RegExp(r'N(\d+\.?\d*)');
-        final RegExp pRegExp = RegExp(r'P(\d+\.?\d*)');
-        final RegExp kRegExp = RegExp(r'K(\d+\.?\d*)');
-        final RegExp phRegExp = RegExp(r'pH(\d+\.?\d*)');
-        
-        final nMatch = nRegExp.firstMatch(message);
-        final pMatch = pRegExp.firstMatch(message);
-        final kMatch = kRegExp.firstMatch(message);
-        final phMatch = phRegExp.firstMatch(message);
-        
-        if (nMatch != null) nitrogen = nMatch.group(1) ?? '--';
-        if (pMatch != null) phosphorus = pMatch.group(1) ?? '--';
-        if (kMatch != null) potassium = kMatch.group(1) ?? '--';
-        if (phMatch != null) ph = phMatch.group(1) ?? '--';
-        
-        print('✅ Parsed: N=$nitrogen, P=$phosphorus, K=$potassium, pH=$ph');
       }
       else {
         print('❌ Unknown format: "$message"');
