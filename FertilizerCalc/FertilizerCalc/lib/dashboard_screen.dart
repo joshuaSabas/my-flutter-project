@@ -420,26 +420,58 @@ class _DashboardScreenState extends State<DashboardScreen>
     }
   }
 
+  // ============================================
+  // FIXED: START LISTENING FOR DATA WITH PRINT STATEMENTS
+  // ============================================
   void _startListeningForData() {
     final connection = _bluetoothService.connection;
-    if (connection == null) return;
+    if (connection == null) {
+      print('❌ ERROR: Connection is NULL!');
+      setState(() {
+        _errorMessage = 'Connection error. Please reconnect.';
+      });
+      return;
+    }
+
+    print('✅ Listening for sensor data...');
 
     connection.input?.listen(
       (data) {
+        print('📊 RAW DATA RECEIVED: $data');
+        
+        final String rawString = String.fromCharCodes(data);
+        print('📝 RAW STRING: "$rawString"');
+        
         final reading = _parseSensorData(data);
         if (reading != null) {
+          print('✅ PARSED: N=${reading.nitrogen}, P=${reading.phosphorus}, K=${reading.potassium}, pH=${reading.ph}');
           setState(() {
             _currentReading = reading;
           });
           _saveToHistory(reading);
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Soil data received!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 1),
+            ),
+          );
+        } else {
+          print('❌ FAILED TO PARSE DATA!');
+          setState(() {
+            _errorMessage = 'Failed to parse sensor data. Check format.';
+          });
         }
       },
       onError: (error) {
+        print('❌ ERROR READING DATA: $error');
         setState(() {
           _errorMessage = 'Error reading data: $error';
         });
       },
       onDone: () {
+        print('❌ DATA STREAM CLOSED');
         setState(() {
           _isConnected = false;
           _deviceName = '';
@@ -448,32 +480,99 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
+  // ============================================
+  // FIXED: PARSE SENSOR DATA WITH MULTIPLE FORMATS
+  // ============================================
   SensorReading? _parseSensorData(List<int> data) {
     try {
       final String message = String.fromCharCodes(data).trim();
-      if (message.isEmpty) return null;
+      print('📝 Full message: "$message"');
+      
+      if (message.isEmpty) {
+        print('❌ Empty message');
+        return null;
+      }
 
-      final parts = message.split(',');
       String nitrogen = '--';
       String phosphorus = '--';
       String potassium = '--';
       String ph = '--';
 
-      for (String part in parts) {
-        if (part.startsWith('N:')) nitrogen = part.substring(2);
-        if (part.startsWith('P:')) phosphorus = part.substring(2);
-        if (part.startsWith('K:')) potassium = part.substring(2);
-        if (part.startsWith('pH:')) ph = part.substring(3);
+      // FORMAT 1: "N:45,P:30,K:20,pH:6.5"
+      if (message.contains('N:') || message.contains('P:') || message.contains('K:') || message.contains('pH:')) {
+        print('📊 Format 1: Key-value pairs');
+        final parts = message.split(',');
+        for (String part in parts) {
+          part = part.trim();
+          if (part.startsWith('N:')) {
+            nitrogen = part.substring(2).trim();
+            print('✅ Found N: $nitrogen');
+          } else if (part.startsWith('P:')) {
+            phosphorus = part.substring(2).trim();
+            print('✅ Found P: $phosphorus');
+          } else if (part.startsWith('K:')) {
+            potassium = part.substring(2).trim();
+            print('✅ Found K: $potassium');
+          } else if (part.toLowerCase().startsWith('ph:')) {
+            ph = part.substring(3).trim();
+            print('✅ Found pH: $ph');
+          }
+        }
+      }
+      // FORMAT 2: "45,30,20,6.5"
+      else if (message.contains(',') && !message.contains(':')) {
+        print('📊 Format 2: Numbers only');
+        final parts = message.split(',');
+        if (parts.length >= 4) {
+          nitrogen = parts[0].trim();
+          phosphorus = parts[1].trim();
+          potassium = parts[2].trim();
+          ph = parts[3].trim();
+          print('✅ Parsed: N=$nitrogen, P=$phosphorus, K=$potassium, pH=$ph');
+        }
+      }
+      // FORMAT 3: "N45 P30 K20 pH6.5"
+      else if (message.contains('N') && message.contains('P') && message.contains('K')) {
+        print('📊 Format 3: No colon');
+        final RegExp nRegExp = RegExp(r'N(\d+\.?\d*)');
+        final RegExp pRegExp = RegExp(r'P(\d+\.?\d*)');
+        final RegExp kRegExp = RegExp(r'K(\d+\.?\d*)');
+        final RegExp phRegExp = RegExp(r'pH(\d+\.?\d*)');
+        
+        final nMatch = nRegExp.firstMatch(message);
+        final pMatch = pRegExp.firstMatch(message);
+        final kMatch = kRegExp.firstMatch(message);
+        final phMatch = phRegExp.firstMatch(message);
+        
+        if (nMatch != null) nitrogen = nMatch.group(1) ?? '--';
+        if (pMatch != null) phosphorus = pMatch.group(1) ?? '--';
+        if (kMatch != null) potassium = kMatch.group(1) ?? '--';
+        if (phMatch != null) ph = phMatch.group(1) ?? '--';
+        
+        print('✅ Parsed: N=$nitrogen, P=$phosphorus, K=$potassium, pH=$ph');
+      }
+      else {
+        print('❌ Unknown format: "$message"');
+        setState(() {
+          _errorMessage = 'Unknown data format: "$message"';
+        });
+        return null;
       }
 
-      return SensorReading(
-        nitrogen: nitrogen,
-        phosphorus: phosphorus,
-        potassium: potassium,
-        ph: ph,
-        timestamp: DateTime.now(),
-      );
+      if (nitrogen != '--' || phosphorus != '--' || potassium != '--' || ph != '--') {
+        return SensorReading(
+          nitrogen: nitrogen,
+          phosphorus: phosphorus,
+          potassium: potassium,
+          ph: ph,
+          timestamp: DateTime.now(),
+        );
+      }
+
+      print('❌ No valid data found');
+      return null;
     } catch (e) {
+      print('❌ Parse error: $e');
       return null;
     }
   }
@@ -1141,15 +1240,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                           ),
                         ),
                       ),
-                      // ============================================
-                      // HEADER - TAMA NA!
-                      // ============================================
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // 👇 BURGER ICON - NASA ITAAS (KALIWA)
                             Builder(
                               builder: (context) {
                                 return IconButton(
@@ -1166,10 +1261,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 );
                               },
                             ),
-                            
                             const SizedBox(height: 20),
-                            
-                            // 👇 TEXT.PNG - NASA BABA NG BURGER (KALIWA)
                             Image.asset(
                               "images/text.png",
                               height: 50,
@@ -1184,10 +1276,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 );
                               },
                             ),
-                            
                             const SizedBox(height: 8),
-                            
-                            // 👇 SUBTITLE - NASA BABA PA (KALIWA)
                             const Text(
                               "Smart Soil Analysis &\nFertilizer Recommendation",
                               style: TextStyle(
@@ -1204,9 +1293,6 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                   const SizedBox(height: 12),
 
-                  // ============================================
-                  // CONNECT TO SOIL SENSOR
-                  // ============================================
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Container(
@@ -1337,9 +1423,6 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                   const SizedBox(height: 24),
 
-                  // ============================================
-                  // LIVE SOIL PARAMETERS
-                  // ============================================
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
@@ -1426,9 +1509,6 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                   const SizedBox(height: 24),
 
-                  // ============================================
-                  // FERTILIZER RECOMMENDATION
-                  // ============================================
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Container(
@@ -1546,9 +1626,6 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                   const SizedBox(height: 16),
 
-                  // ============================================
-                  // SOIL STATUS
-                  // ============================================
                   if (_isConnected && _currentReading != null) ...[
                     Padding(
                       padding:
@@ -1601,9 +1678,6 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ),
 
-            // ============================================
-            // BLUETOOTH STATUS INDICATOR
-            // ============================================
             Positioned(
               top: 12,
               right: 16,
@@ -1653,9 +1727,6 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ),
 
-            // ============================================
-            // MOISTURE REMINDER
-            // ============================================
             _buildMoistureReminderIcon(),
           ],
         ),
