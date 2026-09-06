@@ -17,7 +17,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> 
-    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
+    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin, WidgetsBindingObserver {
 
   @override
   bool get wantKeepAlive => true;
@@ -30,6 +30,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   String _deviceName = '';
   bool _isScanning = false;
   Map<String, dynamic>? _recommendationResult;
+  bool _isAppInBackground = false;
 
   late AnimationController _bounceController;
   late Animation<double> _bounceAnimation;
@@ -37,8 +38,12 @@ class _DashboardScreenState extends State<DashboardScreen>
   @override
   void initState() {
     super.initState();
+    
+    WidgetsBinding.instance.addObserver(this);
+    
     _bluetoothService = BluetoothService();
     _checkBluetoothStatus();
+    _restoreState();
 
     _bounceController = AnimationController(
       vsync: this,
@@ -52,9 +57,105 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _bounceController.dispose();
     _bluetoothService.disconnect();
     super.dispose();
+  }
+
+  // ============================================
+  // APP LIFE CYCLE
+  // ============================================
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    
+    print('📱 App Lifecycle State: $state');
+    
+    switch (state) {
+      case AppLifecycleState.resumed:
+        print('✅ App resumed - Restoring state...');
+        _isAppInBackground = false;
+        _restoreState();
+        break;
+        
+      case AppLifecycleState.inactive:
+        print('⏸️ App inactive');
+        break;
+        
+      case AppLifecycleState.paused:
+        print('⏸️ App paused - Saving state...');
+        _isAppInBackground = true;
+        _saveState();
+        break;
+        
+      case AppLifecycleState.detached:
+        print('❌ App detached');
+        break;
+    }
+  }
+
+  // ============================================
+  // STATE PRESERVATION
+  // ============================================
+
+  Future<void> _restoreState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isConnected = prefs.getBool('dashboard_isConnected') ?? false;
+      final deviceName = prefs.getString('dashboard_deviceName') ?? '';
+      final isScanning = prefs.getBool('dashboard_isScanning') ?? false;
+      
+      print('🔄 Restoring state: isConnected=$isConnected, deviceName=$deviceName');
+      
+      setState(() {
+        _isConnected = isConnected;
+        _deviceName = deviceName;
+        _isScanning = isScanning;
+      });
+      
+      if (_isConnected && _deviceName.isNotEmpty) {
+        print('🔄 Reconnecting to sensor...');
+        _startListeningForData();
+      }
+      
+      if (_isScanning) {
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) {
+            setState(() {
+              _isScanning = false;
+            });
+          }
+        });
+      }
+    } catch (e) {
+      print('❌ Error restoring state: $e');
+    }
+  }
+
+  Future<void> _saveState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('dashboard_isConnected', _isConnected);
+      await prefs.setString('dashboard_deviceName', _deviceName);
+      await prefs.setBool('dashboard_isScanning', _isScanning);
+      print('💾 State saved: isConnected=$_isConnected, deviceName=$_deviceName');
+    } catch (e) {
+      print('❌ Error saving state: $e');
+    }
+  }
+
+  Future<void> _clearState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('dashboard_isConnected');
+      await prefs.remove('dashboard_deviceName');
+      await prefs.remove('dashboard_isScanning');
+      print('🗑️ State cleared');
+    } catch (e) {
+      print('❌ Error clearing state: $e');
+    }
   }
 
   // ============================================
@@ -364,18 +465,21 @@ class _DashboardScreenState extends State<DashboardScreen>
       setState(() {
         _isScanning = true;
       });
+      await _saveState();
 
       final devices = await _bluetoothService.scanDevices();
 
       setState(() {
         _isScanning = false;
       });
+      await _saveState();
 
       if (devices.isEmpty) {
         setState(() {
           _errorMessage = 'No Bluetooth devices found';
           _isLoading = false;
         });
+        await _saveState();
         return;
       }
 
@@ -388,6 +492,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         setState(() {
           _isLoading = false;
         });
+        await _saveState();
         return;
       }
 
@@ -398,6 +503,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           _deviceName = selectedDevice.name ?? 'Soil Sensor';
           _isLoading = false;
         });
+        await _saveState();
         _startListeningForData();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -410,6 +516,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           _errorMessage = 'Failed to connect to ${selectedDevice.name}';
           _isLoading = false;
         });
+        await _saveState();
       }
     } catch (e) {
       setState(() {
@@ -417,11 +524,12 @@ class _DashboardScreenState extends State<DashboardScreen>
         _isLoading = false;
         _isScanning = false;
       });
+      await _saveState();
     }
   }
 
   // ============================================
-  // FIXED: START LISTENING FOR DATA WITH PRINT STATEMENTS
+  // START LISTENING FOR DATA WITH PRINT STATEMENTS
   // ============================================
   void _startListeningForData() {
     final connection = _bluetoothService.connection;
@@ -476,12 +584,13 @@ class _DashboardScreenState extends State<DashboardScreen>
           _isConnected = false;
           _deviceName = '';
         });
+        _clearState();
       },
     );
   }
 
   // ============================================
-  // FIXED: PARSE SENSOR DATA WITH MULTIPLE FORMATS
+  // PARSE SENSOR DATA WITH MULTIPLE FORMATS
   // ============================================
   SensorReading? _parseSensorData(List<int> data) {
     try {
@@ -595,6 +704,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         _currentReading = null;
         _recommendationResult = null;
       });
+      await _clearState();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Disconnected from sensor'),
