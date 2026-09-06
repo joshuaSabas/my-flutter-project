@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-//import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'bluetooth/bluetooth_service.dart';
 import 'bluetooth/bluetooth_dialog.dart';
 import 'bluetooth/bluetooth_permission.dart';
@@ -7,6 +7,7 @@ import 'models/sensor_reading.dart';
 import 'services/recommendation_service.dart';
 import 'database/database_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'directions_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -15,7 +16,12 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> 
+    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin, WidgetsBindingObserver {
+
+  @override
+  bool get wantKeepAlive => true;
+
   late BluetoothService _bluetoothService;
   SensorReading? _currentReading;
   bool _isConnected = false;
@@ -24,83 +30,324 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _deviceName = '';
   bool _isScanning = false;
   Map<String, dynamic>? _recommendationResult;
+  bool _isAppInBackground = false;
+  String _lastRawData = ''; // 👈 PARA MAKITA ANG DATA
+
+  late AnimationController _bounceController;
+  late Animation<double> _bounceAnimation;
 
   @override
   void initState() {
     super.initState();
+    
+    WidgetsBinding.instance.addObserver(this);
+    
     _bluetoothService = BluetoothService();
     _checkBluetoothStatus();
+    _restoreState();
+
+    _bounceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _bounceAnimation = Tween<double>(begin: 0, end: 0.10).animate(
+      CurvedAnimation(parent: _bounceController, curve: Curves.easeInOut),
+    );
+    _bounceController.repeat(reverse: true);
   }
 
-  // ============================================
-  // MOISTURE REMINDER - FLOATING WIDGET
-  // ============================================
-  Widget _buildMoistureReminder() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFE3F2FD), Color(0xFFBBDEFB), Color(0xFF81D4FA)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _bounceController.dispose();
+    _bluetoothService.disconnect();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    
+    print('📱 App Lifecycle State: $state');
+    
+    if (state == AppLifecycleState.resumed) {
+      _isAppInBackground = false;
+      _restoreState();
+    } else if (state == AppLifecycleState.paused) {
+      _isAppInBackground = true;
+      _saveState();
+    }
+  }
+
+  Future<void> _restoreState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isConnected = prefs.getBool('dashboard_isConnected') ?? false;
+      final deviceName = prefs.getString('dashboard_deviceName') ?? '';
+      final isScanning = prefs.getBool('dashboard_isScanning') ?? false;
+      
+      setState(() {
+        _isConnected = isConnected;
+        _deviceName = deviceName;
+        _isScanning = isScanning;
+      });
+      
+      if (_isConnected && _deviceName.isNotEmpty) {
+        _startListeningForData();
+      }
+    } catch (e) {
+      print('❌ Error restoring state: $e');
+    }
+  }
+
+  Future<void> _saveState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('dashboard_isConnected', _isConnected);
+      await prefs.setString('dashboard_deviceName', _deviceName);
+      await prefs.setBool('dashboard_isScanning', _isScanning);
+    } catch (e) {
+      print('❌ Error saving state: $e');
+    }
+  }
+
+  Future<void> _clearState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('dashboard_isConnected');
+      await prefs.remove('dashboard_deviceName');
+      await prefs.remove('dashboard_isScanning');
+    } catch (e) {
+      print('❌ Error clearing state: $e');
+    }
+  }
+
+  Widget _buildDrawer() {
+    return Drawer(
+      child: Container(
+        color: Colors.white,
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.agriculture,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "FertilizerCalc",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            "v1.0.0",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.bluetooth,
+                          size: 14,
+                          color: _isConnected ? Colors.greenAccent : Colors.white54,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _isConnected ? "Sensor Connected" : "No Sensor",
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: _isConnected ? Colors.greenAccent : Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(Icons.directions, color: Colors.green),
+              title: const Text(
+                "Directions",
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              trailing: Container(
+                width: 4,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DirectionsScreen()),
+                );
+              },
+            ),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(Icons.eco, size: 16, color: Colors.green.shade300),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "Smart Soil Analysis",
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.blue.shade300, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue.shade200.withOpacity(0.4),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
+    );
+  }
+
+  Widget _buildMoistureReminderIcon() {
+    return Positioned(
+      bottom: 24,
+      right: 20,
+      child: GestureDetector(
+        onTap: _showMoistureReminderDialog,
+        child: Transform.translate(
+          offset: Offset(0, -_bounceAnimation.value * 12),
+          child: Container(
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
-              color: Colors.blue.shade100,
-              borderRadius: BorderRadius.circular(12),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF1565C0), Color(0xFF42A5F5)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.blue.shade200.withOpacity(0.3),
-                  blurRadius: 8,
+                  color: Colors.blue.shade300.withOpacity(0.5),
+                  blurRadius: 20,
+                  spreadRadius: 4,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
             child: const Icon(
               Icons.water_drop,
-              color: Color(0xFF1565C0),
+              color: Colors.white,
               size: 30,
             ),
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "💧 Keep soil moist, not waterlogged",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF0D47A1),
-                  ),
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  "Water early morning or late afternoon",
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF1565C0),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
+    );
+  }
+
+  void _showMoistureReminderDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.water_drop, color: Colors.blue, size: 24),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                "💧 Moisture Reminder",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "🌱 Keep soil moist, but not waterlogged.",
+                style: TextStyle(fontSize: 15),
+              ),
+              SizedBox(height: 8),
+              Text(
+                "⏰ Water early morning or late afternoon.",
+                style: TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+              SizedBox(height: 4),
+              Text(
+                "💧 This helps prevent evaporation and root rot.",
+                style: TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                "Got it",
+                style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -117,6 +364,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  // ============================================
+  // BLUETOOTH FUNCTIONS
+  // ============================================
+  
   Future<void> _checkBluetoothStatus() async {
     try {
       final isEnabled = await _bluetoothService.isBluetoothEnabled();
@@ -150,6 +401,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _errorMessage = 'Bluetooth must be enabled to connect';
             _isLoading = false;
           });
+          _showBluetoothDisabledDialog();
           return;
         }
       }
@@ -166,18 +418,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() {
         _isScanning = true;
       });
+      await _saveState();
 
       final devices = await _bluetoothService.scanDevices();
 
       setState(() {
         _isScanning = false;
       });
+      await _saveState();
 
       if (devices.isEmpty) {
         setState(() {
           _errorMessage = 'No Bluetooth devices found';
           _isLoading = false;
         });
+        await _saveState();
         return;
       }
 
@@ -190,6 +445,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         setState(() {
           _isLoading = false;
         });
+        await _saveState();
         return;
       }
 
@@ -200,6 +456,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _deviceName = selectedDevice.name ?? 'Soil Sensor';
           _isLoading = false;
         });
+        await _saveState();
         _startListeningForData();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -212,6 +469,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _errorMessage = 'Failed to connect to ${selectedDevice.name}';
           _isLoading = false;
         });
+        await _saveState();
       }
     } catch (e) {
       setState(() {
@@ -219,63 +477,187 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _isLoading = false;
         _isScanning = false;
       });
+      await _saveState();
     }
   }
 
+  // ============================================
+  // START LISTENING FOR DATA - WITH DEBUG
+  // ============================================
   void _startListeningForData() {
     final connection = _bluetoothService.connection;
-    if (connection == null) return;
+    if (connection == null) {
+      print('❌ ERROR: Connection is NULL!');
+      setState(() {
+        _errorMessage = 'Connection error. Please reconnect.';
+      });
+      return;
+    }
+
+    print('✅ Listening for sensor data...');
 
     connection.input?.listen(
       (data) {
+        // 👇 I-PRINT ANG RAW DATA
+        print('📊 RAW DATA RECEIVED: $data');
+        
+        final String rawString = String.fromCharCodes(data);
+        print('📝 RAW STRING: "$rawString"');
+        
+        // 👇 I-SAVE PARA MAKITA SA UI
+        setState(() {
+          _lastRawData = rawString;
+        });
+        
+        // 👇 CHECK KUNG "NO_DATA"
+        if (rawString.contains("NO_DATA") || rawString.contains("no data")) {
+          print('⏳ No sensor data available');
+          setState(() {
+            _errorMessage = 'Waiting for sensor data...';
+            _currentReading = null;
+          });
+          return;
+        }
+        
+        // 👇 TRY TO PARSE
         final reading = _parseSensorData(data);
         if (reading != null) {
+          print('✅ PARSED SUCCESSFULLY!');
+          print('   N=${reading.nitrogen}');
+          print('   P=${reading.phosphorus}');
+          print('   K=${reading.potassium}');
+          print('   pH=${reading.ph}');
+          
           setState(() {
             _currentReading = reading;
+            _errorMessage = '';
           });
           _saveToHistory(reading);
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Soil data received!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 1),
+            ),
+          );
+        } else {
+          print('❌ FAILED TO PARSE DATA!');
+          setState(() {
+            _errorMessage = 'Failed to parse: "$rawString"';
+          });
         }
       },
       onError: (error) {
+        print('❌ ERROR READING DATA: $error');
         setState(() {
           _errorMessage = 'Error reading data: $error';
         });
       },
       onDone: () {
+        print('❌ DATA STREAM CLOSED');
         setState(() {
           _isConnected = false;
           _deviceName = '';
         });
+        _clearState();
       },
     );
   }
 
+  // ============================================
+  // PARSE SENSOR DATA - SUPPORTS MULTIPLE FORMATS
+  // ============================================
   SensorReading? _parseSensorData(List<int> data) {
     try {
       final String message = String.fromCharCodes(data).trim();
-      if (message.isEmpty) return null;
+      print('📝 Full message: "$message"');
+      
+      if (message.isEmpty) {
+        print('❌ Empty message');
+        return null;
+      }
 
-      final parts = message.split(',');
       String nitrogen = '--';
       String phosphorus = '--';
       String potassium = '--';
       String ph = '--';
 
-      for (String part in parts) {
-        if (part.startsWith('N:')) nitrogen = part.substring(2);
-        if (part.startsWith('P:')) phosphorus = part.substring(2);
-        if (part.startsWith('K:')) potassium = part.substring(2);
-        if (part.startsWith('pH:')) ph = part.substring(3);
+      // 👇 FORMAT 1: "N:45,P:30,K:20,pH:6.5"
+      if (message.contains('N:') || message.contains('P:') || message.contains('K:') || message.contains('pH:')) {
+        print('📊 Format 1: Key-value pairs');
+        final parts = message.split(',');
+        for (String part in parts) {
+          part = part.trim();
+          if (part.startsWith('N:')) {
+            nitrogen = part.substring(2).trim();
+            print('✅ Found N: $nitrogen');
+          } else if (part.startsWith('P:')) {
+            phosphorus = part.substring(2).trim();
+            print('✅ Found P: $phosphorus');
+          } else if (part.startsWith('K:')) {
+            potassium = part.substring(2).trim();
+            print('✅ Found K: $potassium');
+          } else if (part.toLowerCase().startsWith('ph:')) {
+            ph = part.substring(3).trim();
+            print('✅ Found pH: $ph');
+          }
+        }
+      }
+      // 👇 FORMAT 2: "45,30,20,6.5"
+      else if (message.contains(',') && !message.contains(':')) {
+        print('📊 Format 2: Numbers only');
+        final parts = message.split(',');
+        if (parts.length >= 4) {
+          nitrogen = parts[0].trim();
+          phosphorus = parts[1].trim();
+          potassium = parts[2].trim();
+          ph = parts[3].trim();
+          print('✅ Parsed: N=$nitrogen, P=$phosphorus, K=$potassium, pH=$ph');
+        }
+      }
+      // 👇 FORMAT 3: "N45 P30 K20 pH6.5"
+      else if (message.contains('N') && message.contains('P') && message.contains('K')) {
+        print('📊 Format 3: No colon');
+        final RegExp nRegExp = RegExp(r'N(\d+\.?\d*)');
+        final RegExp pRegExp = RegExp(r'P(\d+\.?\d*)');
+        final RegExp kRegExp = RegExp(r'K(\d+\.?\d*)');
+        final RegExp phRegExp = RegExp(r'pH(\d+\.?\d*)');
+        
+        final nMatch = nRegExp.firstMatch(message);
+        final pMatch = pRegExp.firstMatch(message);
+        final kMatch = kRegExp.firstMatch(message);
+        final phMatch = phRegExp.firstMatch(message);
+        
+        if (nMatch != null) nitrogen = nMatch.group(1) ?? '--';
+        if (pMatch != null) phosphorus = pMatch.group(1) ?? '--';
+        if (kMatch != null) potassium = kMatch.group(1) ?? '--';
+        if (phMatch != null) ph = phMatch.group(1) ?? '--';
+        
+        print('✅ Parsed: N=$nitrogen, P=$phosphorus, K=$potassium, pH=$ph');
+      }
+      else {
+        print('❌ Unknown format: "$message"');
+        setState(() {
+          _errorMessage = 'Unknown format: "$message"';
+        });
+        return null;
       }
 
-      return SensorReading(
-        nitrogen: nitrogen,
-        phosphorus: phosphorus,
-        potassium: potassium,
-        ph: ph,
-        timestamp: DateTime.now(),
-      );
+      if (nitrogen != '--' || phosphorus != '--' || potassium != '--' || ph != '--') {
+        return SensorReading(
+          nitrogen: nitrogen,
+          phosphorus: phosphorus,
+          potassium: potassium,
+          ph: ph,
+          timestamp: DateTime.now(),
+        );
+      }
+
+      print('❌ No valid data found');
+      return null;
     } catch (e) {
+      print('❌ Parse error: $e');
       return null;
     }
   }
@@ -298,6 +680,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _currentReading = null;
         _recommendationResult = null;
       });
+      await _clearState();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Disconnected from sensor'),
@@ -314,12 +697,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _bluetoothService.disconnect();
-    super.dispose();
+  void _showBluetoothDisabledDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            "Bluetooth Required",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Bluetooth is not enabled on your device.",
+                style: TextStyle(fontSize: 14),
+              ),
+              SizedBox(height: 8),
+              Text(
+                "Please turn on Bluetooth first to connect to the soil sensor.",
+                style: TextStyle(fontSize: 13, color: Colors.grey),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await _connectToDevice();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+              ),
+              child: const Text("Try Again"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
+  // ============================================
+  // STATUS FUNCTIONS
+  // ============================================
   int _getStatusN(int n) {
     if (n < 30) return 0;
     if (n <= 60) return 2;
@@ -380,6 +806,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  // ============================================
+  // RECOMMENDATION
+  // ============================================
   Future<void> _getRecommendation() async {
     if (_currentReading == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -475,7 +904,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // FERTILIZER IMAGE (CLICKABLE)
                 GestureDetector(
                   onTap: () {
                     if (googleSearch.isNotEmpty) {
@@ -528,8 +956,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-
-                // FERTILIZER NAME (CLICKABLE)
                 GestureDetector(
                   onTap: () {
                     if (googleSearch.isNotEmpty) {
@@ -556,18 +982,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             textAlign: TextAlign.center,
                           ),
                         ),
-                        const Icon(
-                          Icons.search,
-                          size: 18,
-                          color: Colors.green,
-                        ),
+                        const Icon(Icons.search, size: 18, color: Colors.green),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 12),
-
-                // NPK ANALYSIS
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -616,8 +1036,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-
-                // APPLICATION DETAILS
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -633,31 +1051,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade700,
+                          color: Color(0xFF1565C0),
                         ),
                       ),
                       const SizedBox(height: 6),
                       if (applicationRate.isNotEmpty)
-                        Text(
-                          "Rate: $applicationRate",
-                          style: const TextStyle(fontSize: 11, color: Colors.black87),
-                        ),
+                        Text("Rate: $applicationRate",
+                            style: const TextStyle(fontSize: 11, color: Colors.black87)),
                       if (modeOfApplication.isNotEmpty)
-                        Text(
-                          "Mode: $modeOfApplication",
-                          style: const TextStyle(fontSize: 11, color: Colors.black87),
-                        ),
+                        Text("Mode: $modeOfApplication",
+                            style: const TextStyle(fontSize: 11, color: Colors.black87)),
                       if (applicationTiming.isNotEmpty)
-                        Text(
-                          "Timing: $applicationTiming",
-                          style: const TextStyle(fontSize: 11, color: Colors.black87),
-                        ),
+                        Text("Timing: $applicationTiming",
+                            style: const TextStyle(fontSize: 11, color: Colors.black87)),
                     ],
                   ),
                 ),
                 const SizedBox(height: 10),
-
-                // QUANTITY
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -688,10 +1098,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             Text(
                               amount,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey,
-                              ),
+                              style: const TextStyle(fontSize: 11, color: Colors.grey),
                             ),
                           ],
                         ),
@@ -700,8 +1107,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-
-                // SOIL PARAMETERS
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -716,6 +1121,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildParamChip("K", _currentReading?.potassium ?? '--'),
                       _buildParamChip("pH", _currentReading?.ph ?? '--'),
                     ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: () {
+                    if (googleSearch.isNotEmpty) {
+                      _launchGoogleSearch(googleSearch);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.info_outline, color: Colors.blue, size: 16),
+                        const SizedBox(width: 8),
+                        const Text(
+                          "Click Here to see more about this fertilizer",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.arrow_forward, color: Colors.blue, size: 14),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -739,6 +1177,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     fertilizerImageUrl: imageUrl,
                     alternativeType: alternative,
                     recommendedSacks: sacks,
+                    amount: amount,
                     npkAnalysis: npk,
                   );
                   _saveToHistory(reading);
@@ -751,9 +1190,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 );
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
               icon: const Icon(Icons.save, size: 18),
               label: const Text("Save"),
             ),
@@ -811,21 +1248,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       child: Column(
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            subtitle,
-            style: const TextStyle(
-              fontSize: 8,
-              color: Colors.grey,
-            ),
-          ),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+          Text(subtitle,
+              style: const TextStyle(fontSize: 8, color: Colors.grey)),
         ],
       ),
     );
@@ -847,500 +1274,561 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
+      drawer: _buildDrawer(),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ==========================================
-              // HEADER
-              // ==========================================
-              Stack(
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Image.asset(
-                    "images/background.png",
-                    width: double.infinity,
-                    height: 200,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
+                  Stack(
+                    children: [
+                      Image.asset(
+                        "images/background.png",
+                        width: double.infinity,
                         height: 200,
-                        color: Colors.green.shade100,
-                        child: const Center(
-                          child: Icon(
-                            Icons.agriculture,
-                            size: 60,
-                            color: Colors.green,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  Container(
-                    height: 200,
-                    color: Colors.black.withOpacity(0.3),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        const Spacer(),
-                        Image.asset(
-                          "images/text.png",
-                          width: 150,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Text(
-                              "FertilizerCalc",
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            height: 200,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.green.shade300,
+                                  Colors.green.shade700,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                               ),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Text(
-                            "Smart Soil Analysis",
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.white70,
-                              fontWeight: FontWeight.w500,
                             ),
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _isConnected
-                                ? Colors.green.shade100
-                                : Colors.red.shade100,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.bluetooth,
-                                color: _isConnected
-                                    ? Colors.green.shade700
-                                    : Colors.red.shade700,
-                                size: 12,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                _isConnected
-                                    ? "Connected"
-                                    : "Disconnected",
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: _isConnected
-                                      ? Colors.green.shade700
-                                      : Colors.red.shade700,
-                                ),
-                              ),
+                            child: const Center(
+                              child: Icon(Icons.agriculture,
+                                  size: 60, color: Colors.white),
+                            ),
+                          );
+                        },
+                      ),
+                      Container(
+                        height: 200,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withOpacity(0.15),
+                              Colors.black.withOpacity(0.45),
                             ],
                           ),
                         ),
-                        if (_errorMessage.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              _errorMessage,
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: Colors.white70,
-                              ),
-                              textAlign: TextAlign.right,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // ==========================================
-              // CONNECT CARD
-              // ==========================================
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.grey.shade200),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.shade100,
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 32,
-                        backgroundColor: Colors.green.shade50,
-                        child: Image.asset(
-                          "images/sensor_device.png",
-                          width: 40,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Icon(
-                              Icons.sensors,
-                              size: 30,
-                              color: Colors.green,
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Builder(
+                              builder: (context) {
+                                return IconButton(
+                                  icon: const Icon(
+                                    Icons.menu,
+                                    color: Colors.white,
+                                    size: 28,
+                                  ),
+                                  onPressed: () {
+                                    Scaffold.of(context).openDrawer();
+                                  },
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 20),
+                            Image.asset(
+                              "images/text.png",
+                              height: 50,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Text(
+                                  "FertilizerCalc",
+                                  style: TextStyle(
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 8),
                             const Text(
-                              "Connect to Soil Sensor",
+                              "Smart Soil Analysis &\nFertilizer Recommendation",
                               style: TextStyle(
                                 fontSize: 14,
+                                color: Colors.white70,
+                                height: 1.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.shade200,
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 32,
+                            backgroundColor: Colors.green.shade50,
+                            child: Image.asset(
+                              "images/sensor_device.png",
+                              width: 40,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.sensors,
+                                    size: 30, color: Colors.green);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Connect to Soil Sensor",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _isConnected
+                                      ? "Connected to $_deviceName"
+                                      : "Connect your device via Bluetooth\nto start monitoring your soil.",
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: _isConnected
+                                        ? Colors.green
+                                        : Colors.black54,
+                                    height: 1.4,
+                                  ),
+                                ),
+                                if (_isScanning) ...[
+                                  const SizedBox(height: 4),
+                                  const Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 12,
+                                        height: 12,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.blue,
+                                        ),
+                                      ),
+                                      SizedBox(width: 6),
+                                      Text('Scanning...',
+                                          style: TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.blue)),
+                                    ],
+                                  ),
+                                ],
+                                if (_errorMessage.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _errorMessage,
+                                    style: const TextStyle(
+                                        color: Colors.red, fontSize: 10),
+                                  ),
+                                ],
+                                // 👇 I-PRINT ANG RAW DATA PARA MAKITA
+                                if (_lastRawData.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '📝 Last data: $_lastRawData',
+                                    style: const TextStyle(
+                                      fontSize: 9,
+                                      color: Colors.grey,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (_isConnected)
+                            TextButton(
+                              onPressed: _disconnect,
+                              child: const Text("Disconnect",
+                                  style: TextStyle(
+                                      color: Colors.red, fontSize: 12)),
+                            )
+                          else
+                            ElevatedButton.icon(
+                              onPressed: _isLoading || _isScanning
+                                  ? null
+                                  : _connectToDevice,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                              ),
+                              icon: _isLoading
+                                  ? const SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white),
+                                    )
+                                  : const Icon(Icons.bluetooth, size: 16),
+                              label: _isLoading
+                                  ? const SizedBox.shrink()
+                                  : const Text("Connect",
+                                      style: TextStyle(fontSize: 13)),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              "Live Soil Parameters",
+                              style: TextStyle(
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black87,
                               ),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              _isConnected
-                                  ? "Connected to $_deviceName"
-                                  : "Connect via Bluetooth to start monitoring",
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: _isConnected ? Colors.green : Colors.black54,
-                              ),
-                            ),
-                            if (_isScanning) ...[
-                              const SizedBox(height: 4),
-                              const Row(
+                            if (_currentReading == null)
+                              Row(
                                 children: [
-                                  SizedBox(
-                                    width: 12,
-                                    height: 12,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.blue,
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.green,
+                                      shape: BoxShape.circle,
                                     ),
                                   ),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    'Scanning...',
+                                  const SizedBox(width: 4),
+                                  const Text(
+                                    "No Data",
                                     style: TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.blue,
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ],
                               ),
-                            ],
-                            if (_errorMessage.isNotEmpty) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                _errorMessage,
-                                style: const TextStyle(
-                                  color: Colors.red,
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ],
                           ],
                         ),
-                      ),
-                      if (_isConnected)
-                        TextButton(
-                          onPressed: _disconnect,
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                          ),
-                          child: const Text(
-                            "Disconnect",
-                            style: TextStyle(color: Colors.red, fontSize: 12),
-                          ),
-                        )
-                      else
-                        ElevatedButton(
-                          onPressed: _isLoading || _isScanning ? null : _connectToDevice,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 18,
-                              vertical: 8,
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            _buildParameterCard(
+                              title: "N",
+                              subtitle: "Nitrogen",
+                              value: _currentReading?.nitrogen ?? "--",
+                              unit: "mg/kg",
+                              color: Colors.green,
+                              icon: Icons.eco,
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
+                            const SizedBox(width: 8),
+                            _buildParameterCard(
+                              title: "P",
+                              subtitle: "Phosphorus",
+                              value: _currentReading?.phosphorus ?? "--",
+                              unit: "mg/kg",
+                              color: Colors.orange,
+                              icon: Icons.circle,
                             ),
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text(
-                                  "Connect",
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // ==========================================
-              // PARAMETERS
-              // ==========================================
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Live Soil Parameters",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        _buildParameterCard(
-                          title: "N",
-                          subtitle: "Nitrogen",
-                          value: _currentReading?.nitrogen ?? "--",
-                          unit: "mg/kg",
-                          color: Colors.green,
-                        ),
-                        const SizedBox(width: 8),
-                        _buildParameterCard(
-                          title: "P",
-                          subtitle: "Phosphorus",
-                          value: _currentReading?.phosphorus ?? "--",
-                          unit: "mg/kg",
-                          color: Colors.orange,
-                        ),
-                        const SizedBox(width: 8),
-                        _buildParameterCard(
-                          title: "K",
-                          subtitle: "Potassium",
-                          value: _currentReading?.potassium ?? "--",
-                          unit: "mg/kg",
-                          color: Colors.blue,
-                        ),
-                        const SizedBox(width: 8),
-                        _buildParameterCard(
-                          title: "pH",
-                          subtitle: "pH Level",
-                          value: _currentReading?.ph ?? "--",
-                          unit: "",
-                          color: Colors.purple,
+                            const SizedBox(width: 8),
+                            _buildParameterCard(
+                              title: "K",
+                              subtitle: "Potassium",
+                              value: _currentReading?.potassium ?? "--",
+                              unit: "mg/kg",
+                              color: Colors.blue,
+                              icon: Icons.water_drop_outlined,
+                            ),
+                            const SizedBox(width: 8),
+                            _buildParameterCard(
+                              title: "pH",
+                              subtitle: "pH Level",
+                              value: _currentReading?.ph ?? "--",
+                              unit: "pH",
+                              color: Colors.purple,
+                              icon: Icons.science_outlined,
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // ==========================================
-              // RECOMMENDATION
-              // ==========================================
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.grey.shade200),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.shade100,
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
                   ),
-                  child: Row(
-                    children: [
-                      Image.asset(
-                        "images/leaf.png",
-                        width: 50,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(
-                            Icons.eco,
-                            size: 36,
-                            color: Colors.green,
-                          );
-                        },
+
+                  const SizedBox(height: 24),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.shade200,
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(
+                      child: Row(
+                        children: [
+                          Image.asset(
+                            "images/leaf.png",
+                            width: 60,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(Icons.eco,
+                                  size: 44, color: Colors.green);
+                            },
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Fertilizer Recommendation",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _isConnected && _currentReading != null
+                                      ? "Get personalized fertilizer recommendation based on real-time soil data."
+                                      : "Connect to your soil sensor and get personalized fertilizer recommendation based on real-time soil data.",
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.black54,
+                                    height: 1.4,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: (_isConnected &&
+                                            _currentReading != null)
+                                        ? _getRecommendation
+                                        : null,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.green,
+                                      foregroundColor: Colors.white,
+                                      disabledBackgroundColor:
+                                          Colors.green.shade300,
+                                      disabledForegroundColor: Colors.white70,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(25),
+                                      ),
+                                    ),
+                                    child: _isLoading
+                                        ? const SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        : const Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                "Get Recommendation",
+                                                style:
+                                                    TextStyle(fontSize: 13),
+                                              ),
+                                              SizedBox(width: 6),
+                                              Icon(
+                                                Icons.arrow_forward_ios,
+                                                size: 13,
+                                              ),
+                                            ],
+                                          ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Image.asset(
+                            "images/fertilizer.png",
+                            width: 50,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(Icons.science,
+                                  size: 36, color: Colors.blue);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  if (_isConnected && _currentReading != null) ...[
+                    Padding(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border:
+                              Border.all(color: Colors.grey.shade200),
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              "Fertilizer Recommendation",
+                              "Soil Status",
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black87,
                               ),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              _isConnected && _currentReading != null
-                                  ? "Get recommendation based on real-time soil data"
-                                  : "Connect to sensor to get recommendation",
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Colors.black54,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: (_isConnected && _currentReading != null)
-                                    ? _getRecommendation
-                                    : null,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green,
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                ),
-                                child: _isLoading
-                                    ? const SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : const Text(
-                                        "Get Recommendation",
-                                        style: TextStyle(fontSize: 12),
-                                      ),
-                              ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                _buildStatusChip("N",
+                                    _currentReading!.nitrogen, _getStatusN),
+                                const SizedBox(width: 6),
+                                _buildStatusChip("P",
+                                    _currentReading!.phosphorus, _getStatusP),
+                                const SizedBox(width: 6),
+                                _buildStatusChip("K",
+                                    _currentReading!.potassium, _getStatusK),
+                                const SizedBox(width: 6),
+                                _buildStatusChip(
+                                    "pH", _currentReading!.ph, null,
+                                    isPh: true),
+                              ],
                             ),
                           ],
                         ),
                       ),
-                      Image.asset(
-                        "images/fertilizer.png",
-                        width: 45,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(
-                            Icons.science,
-                            size: 30,
-                            color: Colors.blue,
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
-              // ==========================================
-              // STATUS + LOWER SECTION
-              // ==========================================
-              Container(
-                padding: const EdgeInsets.all(16),
-                margin: const EdgeInsets.symmetric(horizontal: 20),
+                  const SizedBox(height: 100),
+                ],
+              ),
+            ),
+
+            Positioned(
+              top: 12,
+              right: 16,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.white,
-                      Colors.green.shade50,
-                      Colors.green.shade100.withOpacity(0.3),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.green.shade200, width: 1),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.green.shade100.withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-                child: Column(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Soil Status (if connected)
-                    if (_isConnected && _currentReading != null) ...[
-                      const Text(
-                        "Soil Status",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
+                    Icon(
+                      Icons.bluetooth,
+                      size: 14,
+                      color: _isConnected ? Colors.blue : Colors.grey,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _isConnected ? "Connected" : "Disconnected",
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: _isConnected ? Colors.blue : Colors.black54,
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          _buildStatusChip("N", _currentReading!.nitrogen, _getStatusN),
-                          const SizedBox(width: 6),
-                          _buildStatusChip("P", _currentReading!.phosphorus, _getStatusP),
-                          const SizedBox(width: 6),
-                          _buildStatusChip("K", _currentReading!.potassium, _getStatusK),
-                          const SizedBox(width: 6),
-                          _buildStatusChip("pH", _currentReading!.ph, null, isPh: true),
-                        ],
+                    ),
+                    const SizedBox(width: 4),
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color:
+                            _isConnected ? Colors.green : Colors.red,
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(height: 12),
-                    ],
-
-                    // Moisture Reminder - Floating at bottom
-                    _buildMoistureReminder(),
+                    ),
                   ],
                 ),
               ),
+            ),
 
-              const SizedBox(height: 20),
-            ],
-          ),
+            _buildMoistureReminderIcon(),
+          ],
         ),
       ),
     );
@@ -1352,44 +1840,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required String value,
     required String unit,
     required Color color,
+    required IconData icon,
   }) {
+    double numVal = double.tryParse(value) ?? 0;
+    double progress = (numVal / 100).clamp(0.0, 1.0);
+
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade100,
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           children: [
             Container(
-              width: 32,
-              height: 32,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
                 color: color.withOpacity(0.12),
                 shape: BoxShape.circle,
               ),
-              child: Center(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: color,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Icon(icon, size: 16, color: color.withOpacity(0.5)),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: const TextStyle(
-                fontSize: 9,
-                color: Colors.black54,
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontSize: 9, color: Colors.black54),
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 6),
             Text(
@@ -1401,20 +1902,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             if (unit.isNotEmpty)
-              Text(
-                unit,
-                style: const TextStyle(
-                  fontSize: 8,
-                  color: Colors.grey,
-                ),
+              Text(unit,
+                  style:
+                      const TextStyle(fontSize: 8, color: Colors.grey)),
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: value == '--' ? 0 : progress,
+                backgroundColor: color.withOpacity(0.1),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    value == '--'
+                        ? color.withOpacity(0.2)
+                        : color),
+                minHeight: 4,
               ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatusChip(String label, String value, Function(int)? statusFunc,
+  Widget _buildStatusChip(String label, String value,
+      Function(int)? statusFunc,
       {bool isPh = false}) {
     if (value == '--') {
       return Container(
@@ -1423,22 +1934,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
           color: Colors.grey.shade200,
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Text(
-          "$label: --",
-          style: const TextStyle(fontSize: 10, color: Colors.grey),
-        ),
+        child: Text("$label: --",
+            style: const TextStyle(fontSize: 10, color: Colors.grey)),
       );
     }
 
     int numVal = int.tryParse(value) ?? 0;
     double phVal = double.tryParse(value) ?? 0.0;
 
-    int statusCode;
-    if (isPh) {
-      statusCode = _getStatusPh(phVal);
-    } else {
-      statusCode = statusFunc != null ? statusFunc(numVal) : 0;
-    }
+    int statusCode = isPh
+        ? _getStatusPh(phVal)
+        : (statusFunc != null ? statusFunc(numVal) : 0);
 
     String statusName = _getStatusName(statusCode, isPh ? 'ph' : '');
     Color statusColor = _getStatusColor(statusCode, isPh ? 'ph' : '');
