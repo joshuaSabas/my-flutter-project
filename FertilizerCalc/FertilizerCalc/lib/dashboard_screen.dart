@@ -44,9 +44,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     _bluetoothService = BluetoothService();
     _checkBluetoothStatus();
     
-    // 👇 I-CLEAR ANG TEST DATA!
-    _clearTestData();
-    
     _restoreState();
 
     _bounceController = AnimationController(
@@ -65,18 +62,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     _bounceController.dispose();
     _bluetoothService.disconnect();
     super.dispose();
-  }
-
-  // ============================================
-  // CLEAR TEST DATA
-  // ============================================
-  void _clearTestData() {
-    setState(() {
-      _currentReading = null;
-      _recommendationResult = null;
-      _errorMessage = '';
-    });
-    print('🧹 Test data cleared!');
   }
 
   // ============================================
@@ -258,7 +243,6 @@ class _DashboardScreenState extends State<DashboardScreen>
             ),
             const SizedBox(height: 8),
             
-            // DIRECTIONS LANG
             ListTile(
               leading: const Icon(Icons.directions, color: Colors.green),
               title: const Text(
@@ -539,7 +523,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   // ============================================
-  // START LISTENING FOR DATA
+  // START LISTENING FOR DATA - FIXED!
   // ============================================
   void _startListeningForData() {
     final connection = _bluetoothService.connection;
@@ -560,11 +544,22 @@ class _DashboardScreenState extends State<DashboardScreen>
         final String rawString = String.fromCharCodes(data);
         print('📝 RAW STRING: "$rawString"');
         
+        // 👇 CHECK KUNG "NO_DATA"
+        if (rawString.contains("NO_DATA")) {
+          print('⏳ No sensor data available');
+          setState(() {
+            _errorMessage = 'Waiting for sensor data...';
+            _currentReading = null;
+          });
+          return;
+        }
+        
         final reading = _parseSensorData(data);
         if (reading != null) {
           print('✅ PARSED: N=${reading.nitrogen}, P=${reading.phosphorus}, K=${reading.potassium}, pH=${reading.ph}');
           setState(() {
             _currentReading = reading;
+            _errorMessage = '';
           });
           _saveToHistory(reading);
           
@@ -600,7 +595,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   // ============================================
-  // PARSE SENSOR DATA
+  // PARSE SENSOR DATA - FIXED!
   // ============================================
   SensorReading? _parseSensorData(List<int> data) {
     try {
@@ -612,11 +607,22 @@ class _DashboardScreenState extends State<DashboardScreen>
         return null;
       }
 
+      // 👇 KUNG "NO_DATA" ANG LUMALABAS
+      if (message.contains("NO_DATA")) {
+        print('⏳ No sensor data available');
+        setState(() {
+          _errorMessage = 'Waiting for sensor data...';
+          _currentReading = null;
+        });
+        return null;
+      }
+
       String nitrogen = '--';
       String phosphorus = '--';
       String potassium = '--';
       String ph = '--';
 
+      // 👇 FORMAT 1: "N:45,P:30,K:20,pH:6.5"
       if (message.contains('N:') || message.contains('P:') || message.contains('K:') || message.contains('pH:')) {
         print('📊 Format 1: Key-value pairs');
         final parts = message.split(',');
@@ -637,6 +643,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           }
         }
       }
+      // 👇 FORMAT 2: "45,30,20,6.5"
       else if (message.contains(',') && !message.contains(':')) {
         print('📊 Format 2: Numbers only');
         final parts = message.split(',');
@@ -648,6 +655,26 @@ class _DashboardScreenState extends State<DashboardScreen>
           print('✅ Parsed: N=$nitrogen, P=$phosphorus, K=$potassium, pH=$ph');
         }
       }
+      // 👇 FORMAT 3: "N45 P30 K20 pH6.5"
+      else if (message.contains('N') && message.contains('P') && message.contains('K')) {
+        print('📊 Format 3: No colon');
+        final RegExp nRegExp = RegExp(r'N(\d+\.?\d*)');
+        final RegExp pRegExp = RegExp(r'P(\d+\.?\d*)');
+        final RegExp kRegExp = RegExp(r'K(\d+\.?\d*)');
+        final RegExp phRegExp = RegExp(r'pH(\d+\.?\d*)');
+        
+        final nMatch = nRegExp.firstMatch(message);
+        final pMatch = pRegExp.firstMatch(message);
+        final kMatch = kRegExp.firstMatch(message);
+        final phMatch = phRegExp.firstMatch(message);
+        
+        if (nMatch != null) nitrogen = nMatch.group(1) ?? '--';
+        if (pMatch != null) phosphorus = pMatch.group(1) ?? '--';
+        if (kMatch != null) potassium = kMatch.group(1) ?? '--';
+        if (phMatch != null) ph = phMatch.group(1) ?? '--';
+        
+        print('✅ Parsed: N=$nitrogen, P=$phosphorus, K=$potassium, pH=$ph');
+      }
       else {
         print('❌ Unknown format: "$message"');
         setState(() {
@@ -657,6 +684,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       }
 
       if (nitrogen != '--' || phosphorus != '--' || potassium != '--' || ph != '--') {
+        print('✅ VALID DATA FOUND!');
         return SensorReading(
           nitrogen: nitrogen,
           phosphorus: phosphorus,
