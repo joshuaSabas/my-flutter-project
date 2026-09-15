@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'splash_screen.dart';
-import 'main_screen.dart';  // 👈 ITO NA ANG BAGO
+import 'dashboard_screen.dart';  // 👈 ITO NA ANG BAGO
 import 'existing_data_screen.dart';
 import 'database/database_helper.dart';
 
