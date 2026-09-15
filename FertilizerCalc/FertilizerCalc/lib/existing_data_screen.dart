@@ -76,8 +76,12 @@ class ExistingDataScreen extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pushReplacement(context,MaterialPageRoute(builder: (_) => 
-                      const DashboardScreen()),
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const DashboardScreen(),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
@@ -123,13 +127,15 @@ class ExistingDataScreen extends StatelessWidget {
                         ],
                       ),
                     );
-                    
+
                     if (confirm == true) {
                       await DatabaseHelper().deleteAllData();
                       if (context.mounted) {
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (_) => const DashboardScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const DashboardScreen(),
+                          ),
                         );
                       }
                     }
@@ -156,7 +162,9 @@ class ExistingDataScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (_) => const DashboardScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => const DashboardScreen(),
+                    ),
                   );
                 },
                 child: const Text(
