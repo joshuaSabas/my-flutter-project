@@ -365,7 +365,7 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   // ============================================
-  // DISCONNECT
+  // DISCONNECT - KUMpleto na!
   // ============================================
   Future<void> disconnect() async {
     try {
@@ -377,4 +377,578 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
       notifyListeners();
       await _clearState();
       ScaffoldMessenger.of(context).showSnackBar(
-        const Snack
+        const SnackBar(
+          content: Text('Disconnected from sensor'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Disconnect error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  // ============================================
+  // BLUETOOTH DISABLED DIALOG
+  // ============================================
+  void _showBluetoothDisabledDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            "Bluetooth Required",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Bluetooth is not enabled on your device.", style: TextStyle(fontSize: 14)),
+              SizedBox(height: 8),
+              Text("Please turn on Bluetooth first.", style: TextStyle(fontSize: 13, color: Colors.grey)),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await connectToDevice();
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+              child: const Text("Try Again"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ============================================
+  // MOISTURE REMINDER
+  // ============================================
+  void showMoistureReminderDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: Colors.blue.shade50, shape: BoxShape.circle),
+                child: const Icon(Icons.water_drop, color: Colors.blue, size: 24),
+              ),
+              const SizedBox(width: 12),
+              const Text("💧 Moisture Reminder", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("🌱 Keep soil moist, but not waterlogged.", style: TextStyle(fontSize: 15)),
+              SizedBox(height: 8),
+              Text("⏰ Water early morning or late afternoon.", style: TextStyle(fontSize: 14, color: Colors.black54)),
+              SizedBox(height: 4),
+              Text("💧 This helps prevent evaporation and root rot.", style: TextStyle(fontSize: 14, color: Colors.black54)),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Got it", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ============================================
+  // GOOGLE SEARCH
+  // ============================================
+  Future<void> launchGoogleSearch(String url) async {
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cannot open Google Search'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  // ============================================
+  // GET RECOMMENDATION
+  // ============================================
+  Future<void> getRecommendation() async {
+    if (_currentReading == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No sensor data available.'), backgroundColor: Colors.orange),
+      );
+      return;
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final recommendationService = RecommendationService();
+      await recommendationService.loadRules();
+
+      int n = int.tryParse(_currentReading!.nitrogen) ?? 0;
+      int p = int.tryParse(_currentReading!.phosphorus) ?? 0;
+      int k = int.tryParse(_currentReading!.potassium) ?? 0;
+      double ph = double.tryParse(_currentReading!.ph) ?? 0.0;
+
+      int statusN = DashboardHelpers.getStatusN(n);
+      int statusP = DashboardHelpers.getStatusP(p);
+      int statusK = DashboardHelpers.getStatusK(k);
+      int statusPh = DashboardHelpers.getStatusPh(ph);
+
+      final result = recommendationService.getRecommendation(
+        n: n, p: p, k: k, ph: ph,
+        statusN: statusN, statusP: statusP, statusK: statusK, statusPh: statusPh,
+      );
+
+      _recommendationResult = result;
+      _isLoading = false;
+      notifyListeners();
+
+      showRecommendationDialog(result);
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  // ============================================
+  // SHOW RECOMMENDATION DIALOG
+  // ============================================
+  void showRecommendationDialog(Map<String, dynamic> result) {
+    final String fertilizer = result['fertilizer'] ?? 'Unknown';
+    final String imageUrl = result['image'] ?? '';
+    final String googleSearch = result['google_search'] ?? '';
+    final String alternative = result['alternative'] ?? 'N/A';
+    final String amount = result['amount'] ?? 'N/A';
+    final int sacks = result['sacks'] ?? 0;
+    final String npk = result['npk'] ?? '--';
+    final String applicationRate = result['application_rate'] ?? '';
+    final String modeOfApplication = result['mode_of_application'] ?? '';
+    final String applicationTiming = result['application_timing'] ?? '';
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.eco, color: Colors.green),
+              const SizedBox(width: 8),
+              const Text(
+                "Recommendation",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    if (googleSearch.isNotEmpty) {
+                      launchGoogleSearch(googleSearch);
+                    }
+                  },
+                  child: Center(
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.green.shade200),
+                      ),
+                      child: imageUrl.isNotEmpty
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                imageUrl,
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Icon(
+                                    Icons.image_not_supported,
+                                    size: 40,
+                                    color: Colors.grey.shade400,
+                                  );
+                                },
+                              ),
+                            )
+                          : Icon(
+                              Icons.agriculture,
+                              size: 40,
+                              color: Colors.green.shade400,
+                            ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Center(
+                  child: Text(
+                    "Tap to search",
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: Colors.grey.shade500,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: () {
+                    if (googleSearch.isNotEmpty) {
+                      launchGoogleSearch(googleSearch);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.green.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            fertilizer,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const Icon(Icons.search, size: 18, color: Colors.green),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "NPK ANALYSIS",
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      Text(
+                        npk.isNotEmpty ? npk : '--',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          _buildNpkBar('N', _currentReading?.nitrogen ?? '--', Colors.green),
+                          const SizedBox(width: 4),
+                          _buildNpkBar('P', _currentReading?.phosphorus ?? '--', Colors.orange),
+                          const SizedBox(width: 4),
+                          _buildNpkBar('K', _currentReading?.potassium ?? '--', Colors.blue),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildNpkChip('🌿 N', 'Leaf Growth', Colors.green),
+                          _buildNpkChip('🌱 P', 'Root Growth', Colors.orange),
+                          _buildNpkChip('🍎 K', 'Plant Health', Colors.blue),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "APPLICATION DETAILS",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1565C0),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      if (applicationRate.isNotEmpty)
+                        Text("Rate: $applicationRate",
+                            style: const TextStyle(fontSize: 11, color: Colors.black87)),
+                      if (modeOfApplication.isNotEmpty)
+                        Text("Mode: $modeOfApplication",
+                            style: const TextStyle(fontSize: 11, color: Colors.black87)),
+                      if (applicationTiming.isNotEmpty)
+                        Text("Timing: $applicationTiming",
+                            style: const TextStyle(fontSize: 11, color: Colors.black87)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "QUANTITY",
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            Text(
+                              "$sacks SAKO",
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                            Text(
+                              amount,
+                              style: const TextStyle(fontSize: 11, color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildParamChip("N", _currentReading?.nitrogen ?? '--'),
+                      _buildParamChip("P", _currentReading?.phosphorus ?? '--'),
+                      _buildParamChip("K", _currentReading?.potassium ?? '--'),
+                      _buildParamChip("pH", _currentReading?.ph ?? '--'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: () {
+                    if (googleSearch.isNotEmpty) {
+                      launchGoogleSearch(googleSearch);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.info_outline, color: Colors.blue, size: 16),
+                        const SizedBox(width: 8),
+                        const Text(
+                          "Click Here to see more about this fertilizer",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.arrow_forward, color: Colors.blue, size: 14),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Close"),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                if (_currentReading != null && _recommendationResult != null) {
+                  final reading = SensorReading(
+                    nitrogen: _currentReading!.nitrogen,
+                    phosphorus: _currentReading!.phosphorus,
+                    potassium: _currentReading!.potassium,
+                    ph: _currentReading!.ph,
+                    timestamp: DateTime.now(),
+                    fertilizerType: fertilizer,
+                    fertilizerImageUrl: imageUrl,
+                    alternativeType: alternative,
+                    recommendedSacks: sacks,
+                    amount: amount,
+                    npkAnalysis: npk,
+                  );
+                  _saveToHistory(reading);
+                }
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Saved!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              icon: const Icon(Icons.save, size: 18),
+              label: const Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildNpkBar(String label, String value, Color color) {
+    double val = double.tryParse(value) ?? 0;
+    return Expanded(
+      child: Column(
+        children: [
+          Container(
+            height: 35,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                height: (val / 100).clamp(0.0, 1.0) * 35,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNpkChip(String label, String subtitle, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Column(
+        children: [
+          Text(label,
+              style: TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+          Text(subtitle,
+              style: const TextStyle(fontSize: 8, color: Colors.grey)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildParamChip(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        "$label: $value",
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+      ),
+    );
+  }
+
+  // ============================================
+  // DISPOSE
+  // ============================================
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _bluetoothService.disconnect();
+    super.dispose();
+  }
+}
