@@ -29,8 +29,7 @@ class DashboardWidgets {
                   buildLiveSoilParameters(logic),
                   const SizedBox(height: 24),
                   buildRecommendationCard(context, logic),
-                  const SizedBox(height: 16),
-                  buildSoilStatus(logic),
+                  // 👇 TANGGAL ANG SOIL STATUS DITO!
                   const SizedBox(height: 100),
                 ],
               ),
@@ -726,106 +725,6 @@ class DashboardWidgets {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // ============================================
-  // SOIL STATUS
-  // ============================================
-  static Widget buildSoilStatus(DashboardLogic logic) {
-    if (!logic.isConnected || logic.currentReading == null) {
-      return const SizedBox.shrink();
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Soil Status",
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                buildStatusChip("N", logic.currentReading!.nitrogen, DashboardHelpers.getStatusN),
-                const SizedBox(width: 6),
-                buildStatusChip("P", logic.currentReading!.phosphorus, DashboardHelpers.getStatusP),
-                const SizedBox(width: 6),
-                buildStatusChip("K", logic.currentReading!.potassium, DashboardHelpers.getStatusK),
-                const SizedBox(width: 6),
-                buildStatusChip("pH", logic.currentReading!.ph, null, isPh: true),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ============================================
-  // STATUS CHIP
-  // ============================================
-  static Widget buildStatusChip(String label, String value, Function(int)? statusFunc, {bool isPh = false}) {
-    if (value == '--') {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Text("$label: --", style: const TextStyle(fontSize: 10, color: Colors.grey)),
-      );
-    }
-
-    int numVal = int.tryParse(value) ?? 0;
-    double phVal = double.tryParse(value) ?? 0.0;
-
-    int statusCode = isPh
-        ? DashboardHelpers.getStatusPh(phVal)
-        : (statusFunc != null ? statusFunc(numVal) : 0);
-
-    String statusName = DashboardHelpers.getStatusName(statusCode, isPh ? 'ph' : '');
-    Color statusColor = DashboardHelpers.getStatusColor(statusCode, isPh ? 'ph' : '');
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: statusColor.withOpacity(0.2)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 5,
-            height: 5,
-            decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            "$label: $statusName",
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w500,
-              color: statusColor,
-            ),
-          ),
-        ],
       ),
     );
   }
