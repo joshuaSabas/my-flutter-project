@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dashboard_logic.dart';
 import 'dashboard_widgets.dart';
+import 'history_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -10,11 +11,13 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen>
-    with TickerProviderStateMixin {  // 👈 DAGDAG ITO!
-  
+    with TickerProviderStateMixin {
+
   late DashboardLogic _logic;
   late AnimationController _bounceController;
   late Animation<double> _bounceAnimation;
+
+  int _currentIndex = 0;
 
   @override
   void initState() {
@@ -22,9 +25,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     _logic = DashboardLogic(context: context);
     _logic.initState();
 
-    // 👇 GAMITIN ANG `this` HINDI `_logic`
     _bounceController = AnimationController(
-      vsync: this,  // 👈 ITO ANG TAMA!
+      vsync: this,
       duration: const Duration(milliseconds: 800),
     );
     _bounceAnimation = Tween<double>(begin: 0, end: 0.10).animate(
@@ -47,11 +49,39 @@ class _DashboardScreenState extends State<DashboardScreen>
     return AnimatedBuilder(
       animation: _logic,
       builder: (context, child) {
-        return DashboardWidgets.buildDashboard(
-          context: context,
-          logic: _logic,
-          bounceAnimation: _bounceAnimation,
-          onDrawerTap: (index) => _logic.onDrawerTap(index),
+        return Scaffold(
+          body: IndexedStack(
+            index: _currentIndex,
+            children: [
+              DashboardWidgets.buildDashboardBody(
+                context: context,
+                logic: _logic,
+                bounceAnimation: _bounceAnimation,
+                onDrawerTap: (index) => _logic.onDrawerTap(index),
+              ),
+              const HistoryScreen(),
+            ],
+          ),
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            selectedItemColor: const Color(0xFF2E7D32),
+            unselectedItemColor: Colors.grey,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.dashboard),
+                label: 'Dashboard',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.history),
+                label: 'History',
+              ),
+            ],
+          ),
         );
       },
     );
