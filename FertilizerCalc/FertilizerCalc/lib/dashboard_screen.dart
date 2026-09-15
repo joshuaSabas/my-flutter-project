@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dashboard_logic.dart';
 import 'dashboard_widgets.dart';
-import 'history_screen.dart';
+import 'history.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
