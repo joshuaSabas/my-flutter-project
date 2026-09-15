@@ -8,6 +8,7 @@ import 'services/recommendation_service.dart';
 import 'database/database_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'directions_screen.dart';
+import 'dashboard_helpers.dart'; 
 
 class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
   final BuildContext context;
