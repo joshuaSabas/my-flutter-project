@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'home_screen.dart';
+import 'dashboard_screen.dart';
 import 'welcome_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -84,7 +84,6 @@ class _SplashScreenState extends State<SplashScreen>
     _logoController.forward();
     _bgController.forward();
 
-    // ✅ CHECK WELCOME STATUS AFTER SPLASH
     Timer(const Duration(milliseconds: 3500), () {
       if (!mounted) return;
       _navigateToNext();
@@ -145,7 +144,6 @@ class _SplashScreenState extends State<SplashScreen>
           return Stack(
             fit: StackFit.expand,
             children: [
-              // BACKGROUND IMAGE
               Transform.scale(
                 scale: _backgroundScale.value,
                 child: Image.asset(
@@ -165,13 +163,9 @@ class _SplashScreenState extends State<SplashScreen>
                   },
                 ),
               ),
-
-              // OVERLAY
               Container(
                 color: Colors.black.withOpacity(.25),
               ),
-
-              // LOGO
               Center(
                 child: SlideTransition(
                   position: _floatAnimation,
