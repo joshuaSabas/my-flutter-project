@@ -76,10 +76,8 @@ class ExistingDataScreen extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => const DashboardScreen()),
-                    );
+                    Navigator.pushReplacement(context,MaterialPageRoute(builder: (_) => 
+                      const MainScreen()),
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
