@@ -9,7 +9,9 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen>
+    with TickerProviderStateMixin {  // 👈 DAGDAG ITO!
+  
   late DashboardLogic _logic;
   late AnimationController _bounceController;
   late Animation<double> _bounceAnimation;
@@ -20,8 +22,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _logic = DashboardLogic(context: context);
     _logic.initState();
 
+    // 👇 GAMITIN ANG `this` HINDI `_logic`
     _bounceController = AnimationController(
-      vsync: _logic,
+      vsync: this,  // 👈 ITO ANG TAMA!
       duration: const Duration(milliseconds: 800),
     );
     _bounceAnimation = Tween<double>(begin: 0, end: 0.10).animate(
@@ -41,11 +44,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return DashboardWidgets.buildDashboard(
-      context: context,
-      logic: _logic,
-      bounceAnimation: _bounceAnimation,
-      onDrawerTap: (index) => _logic.onDrawerTap(index),
+    return AnimatedBuilder(
+      animation: _logic,
+      builder: (context, child) {
+        return DashboardWidgets.buildDashboard(
+          context: context,
+          logic: _logic,
+          bounceAnimation: _bounceAnimation,
+          onDrawerTap: (index) => _logic.onDrawerTap(index),
+        );
+      },
     );
   }
 }
