@@ -3,7 +3,10 @@ import 'dashboard_logic.dart';
 import 'dashboard_helpers.dart';
 
 class DashboardWidgets {
-  static Widget buildDashboard({
+  // ============================================
+  // BAGONG BUILD DASHBOARD BODY (WALANG SCAFFOLD)
+  // ============================================
+  static Widget buildDashboardBody({
     required BuildContext context,
     required DashboardLogic logic,
     required Animation<double> bounceAnimation,
