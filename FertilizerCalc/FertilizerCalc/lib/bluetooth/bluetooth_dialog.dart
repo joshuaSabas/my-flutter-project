@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial_plus/flutter_bluetooth_serial_plus.dart';
+
 class BluetoothDialog {
   static Future<BluetoothDevice?> show({
     required BuildContext context,
     required List<BluetoothDiscoveryResult> devices,
   }) async {
     if (devices.isEmpty) {
-      // Show dialog if no devices found
       return showDialog<BluetoothDevice>(
         context: context,
         builder: (context) {
@@ -17,9 +17,7 @@ class BluetoothDialog {
             ),
             actions: [
               TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
+                onPressed: () => Navigator.of(context).pop(),
                 child: const Text("OK"),
               ),
             ],
@@ -32,30 +30,45 @@ class BluetoothDialog {
       context: context,
       builder: (context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+          contentPadding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
           title: Row(
             children: [
-              const Icon(Icons.bluetooth, color: Colors.blue),
-              const SizedBox(width: 10),
-              const Text(
-                "Select Bluetooth Device",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.bluetooth, color: Colors.green, size: 24),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  "Select Bluetooth Device",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
           ),
           content: SizedBox(
             width: double.maxFinite,
-            height: 350,
+            height: 400,
             child: Column(
               children: [
-                // Search bar or info
+                // Info bar
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
                     children: [
@@ -71,7 +84,7 @@ class BluetoothDialog {
                     ],
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Expanded(
                   child: ListView.builder(
                     itemCount: devices.length,
@@ -80,65 +93,53 @@ class BluetoothDialog {
                       final deviceName = device.name ?? "Unknown Device";
                       final isSoilSensor = deviceName.contains('Soil Sensor');
 
-                      return Card(
-                        elevation: 2,
-                        margin: const EdgeInsets.symmetric(vertical: 4),
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        decoration: BoxDecoration(
+                          color: isSoilSensor ? Colors.green.shade50 : Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isSoilSensor ? Colors.green : Colors.grey.shade300,
+                            width: isSoilSensor ? 2 : 1,
+                          ),
+                        ),
                         child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                           leading: Container(
-                            padding: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
                               color: isSoilSensor
-                                  ? Colors.green.withOpacity(0.1)
+                                  ? Colors.green.withOpacity(0.15)
                                   : Colors.blue.withOpacity(0.1),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               Icons.bluetooth,
                               color: isSoilSensor ? Colors.green : Colors.blue,
+                              size: 22,
                             ),
                           ),
                           title: Text(
                             deviceName,
                             style: TextStyle(
-                              fontWeight: isSoilSensor
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color:
-                                  isSoilSensor ? Colors.green : Colors.black87,
+                              fontSize: 14,
+                              fontWeight: isSoilSensor ? FontWeight.bold : FontWeight.w500,
+                              color: isSoilSensor ? Colors.green.shade800 : Colors.black87,
                             ),
                           ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(device.address),
-                              if (isSoilSensor)
-                                Container(
-                                  margin: const EdgeInsets.only(top: 4),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Text(
-                                    'Soil Sensor',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                            ],
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              device.address,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
                           ),
                           trailing: isSoilSensor
                               ? Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                                   decoration: BoxDecoration(
                                     color: Colors.green,
                                     borderRadius: BorderRadius.circular(20),
@@ -147,19 +148,17 @@ class BluetoothDialog {
                                     'Recommended',
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 10,
+                                      fontSize: 9,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 )
                               : const Icon(
                                   Icons.arrow_forward_ios,
-                                  size: 16,
+                                  size: 14,
                                   color: Colors.grey,
                                 ),
-                          onTap: () {
-                            Navigator.pop(context, device);
-                          },
+                          onTap: () => Navigator.pop(context, device),
                         ),
                       );
                     },
@@ -168,14 +167,21 @@ class BluetoothDialog {
               ],
             ),
           ),
+          actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
           actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text(
-                "Cancel",
-                style: TextStyle(color: Colors.grey),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.grey.shade700,
+                  side: BorderSide(color: Colors.grey.shade400),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                ),
+                child: const Text("Cancel"),
               ),
             ),
           ],
@@ -224,9 +230,7 @@ class BluetoothDialog {
           content: Text(message),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text("OK"),
             ),
           ],
@@ -265,9 +269,7 @@ class BluetoothDialog {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text("OK"),
             ),
           ],
