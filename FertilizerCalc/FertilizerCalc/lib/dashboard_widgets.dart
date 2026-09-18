@@ -134,119 +134,155 @@ class DashboardWidgets {
   // DRAWER
   // ============================================
   static Widget buildDrawer(BuildContext context, DashboardLogic logic, Function(int) onDrawerTap) {
-    return Drawer(
-      child: Container(
-        color: Colors.white,
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+  return Drawer(
+    child: Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          // HEADER
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(20, 50, 20, 25),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.agriculture, color: Colors.white, size: 28),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.25),
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(width: 12),
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "FertilizerCalc",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            "v1.0.0",
-                            style: TextStyle(fontSize: 12, color: Colors.white70),
-                          ),
-                        ],
+                      child: const Icon(
+                        Icons.agriculture,
+                        color: Colors.white,
+                        size: 32,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                    const SizedBox(width: 14),
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.bluetooth,
-                          size: 14,
-                          color: logic.isConnected ? Colors.greenAccent : Colors.white54,
-                        ),
-                        const SizedBox(width: 4),
                         Text(
-                          logic.isConnected ? "Sensor Connected" : "No Sensor",
+                          "FertilizerCalc",
                           style: TextStyle(
-                            fontSize: 11,
-                            color: logic.isConnected ? Colors.greenAccent : Colors.white70,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          "v1.0.0",
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.white70,
                           ),
                         ),
                       ],
                     ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                ],
-              ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.bluetooth,
+                        size: 16,
+                        color: logic.isConnected ? Colors.greenAccent : Colors.white70,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        logic.isConnected ? "Sensor Connected" : "No Sensor",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: logic.isConnected ? Colors.greenAccent : Colors.white70,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            ListTile(
-              leading: const Icon(Icons.directions, color: Colors.green),
+          ),
+
+          const SizedBox(height: 12),
+
+          // DIRECTIONS LANG!
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: ListTile(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              tileColor: const Color(0xFFE8F5E9),
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.directions,
+                  color: Color(0xFF2E7D32),
+                  size: 22,
+                ),
+              ),
               title: const Text(
                 "Directions",
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              trailing: Container(
-                width: 4,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: Colors.green,
-                  borderRadius: BorderRadius.circular(10),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1B5E20),
                 ),
+              ),
+              trailing: const Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Color(0xFF2E7D32),
               ),
               onTap: () => onDrawerTap(0),
             ),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Icon(Icons.eco, size: 16, color: Colors.green.shade300),
-                  const SizedBox(width: 8),
-                  const Text(
-                    "Smart Soil Analysis",
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
+          ),
+
+          const Spacer(),
+
+          // FOOTER
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(Icons.eco, size: 16, color: Colors.green.shade300),
+                const SizedBox(width: 8),
+                const Text(
+                  "Smart Soil Analysis",
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ============================================
   // CONNECT CARD
