@@ -727,340 +727,621 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  // ============================================
-  // SHOW RECOMMENDATION DIALOG
-  // ============================================
-  void showRecommendationDialog(Map<String, dynamic> result) {
-    final String fertilizer = result['fertilizer'] ?? 'Unknown';
-    final String imageUrl = result['image'] ?? '';
-    final String googleSearch = result['google_search'] ?? '';
-    final String alternative = result['alternative'] ?? 'N/A';
-    final String amount = result['amount'] ?? 'N/A';
-    final int sacks = result['sacks'] ?? 0;
-    final String npk = result['npk'] ?? '--';
-    final String applicationRate = result['application_rate'] ?? '';
-    final String modeOfApplication = result['mode_of_application'] ?? '';
-    final String applicationTiming = result['application_timing'] ?? '';
+ void showRecommendationDialog(Map<String, dynamic> result) {
+  final String fertilizer = result['fertilizer'] ?? 'Unknown';
+  final String imageUrl = result['image'] ?? '';
+  final String googleSearch = result['google_search'] ?? '';
+  final String alternative = result['alternative'] ?? 'N/A';
+  final String amount = result['amount'] ?? 'N/A';
+  final String applicationRate = result['application_rate'] ?? '';
+  final String modeOfApplication = result['mode_of_application'] ?? '';
+  final String applicationTiming = result['application_timing'] ?? '';
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: Row(
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: Container(
+          constraints: const BoxConstraints(maxHeight: 700),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.eco, color: Colors.green),
-              const SizedBox(width: 8),
-              const Text(
-                "Recommendation",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green,
+              // ============================================
+              // HEADER
+              // ============================================
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 55,
+                      height: 55,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.green.withOpacity(0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.shopping_bag,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Fertilizer Recommendation",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1B5E20),
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            "Based on your soil and crop needs",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF666666),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          size: 18,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (googleSearch.isNotEmpty) {
-                      launchGoogleSearch(googleSearch);
-                    }
-                  },
-                  child: Center(
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.green.shade200),
-                      ),
-                      child: imageUrl.isNotEmpty
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                imageUrl,
-                                width: 80,
-                                height: 80,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Icon(
-                                    Icons.image_not_supported,
-                                    size: 40,
-                                    color: Colors.grey.shade400,
-                                  );
-                                },
-                              ),
-                            )
-                          : Icon(
-                              Icons.agriculture,
-                              size: 40,
-                              color: Colors.green.shade400,
-                            ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Center(
-                  child: Text(
-                    "Tap to search",
-                    style: TextStyle(
-                      fontSize: 9,
-                      color: Colors.grey.shade500,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                GestureDetector(
-                  onTap: () {
-                    if (googleSearch.isNotEmpty) {
-                      launchGoogleSearch(googleSearch);
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.green.shade200),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            fertilizer,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        const Icon(Icons.search, size: 18, color: Colors.green),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+
+              // ============================================
+              // SCROLLABLE CONTENT
+              // ============================================
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "NPK ANALYSIS",
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                      // ============================================
+                      // RECOMMENDED FERTILIZER
+                      // ============================================
+                      Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8F5E9),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFF43A047), width: 1.5),
                         ),
-                      ),
-                      Text(
-                        npk.isNotEmpty ? npk : '--',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          _buildNpkBar('N', _currentReading?.nitrogen ?? '--', Colors.green),
-                          const SizedBox(width: 4),
-                          _buildNpkBar('P', _currentReading?.phosphorus ?? '--', Colors.orange),
-                          const SizedBox(width: 4),
-                          _buildNpkBar('K', _currentReading?.potassium ?? '--', Colors.blue),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildNpkChip('🌿 N', 'Leaf Growth', Colors.green),
-                          _buildNpkChip('🌱 P', 'Root Growth', Colors.orange),
-                          _buildNpkChip('🍎 K', 'Plant Health', Colors.blue),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue.shade200),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "APPLICATION DETAILS",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1565C0),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      if (applicationRate.isNotEmpty)
-                        Text("Rate: $applicationRate",
-                            style: const TextStyle(fontSize: 11, color: Colors.black87)),
-                      if (modeOfApplication.isNotEmpty)
-                        Text("Mode: $modeOfApplication",
-                            style: const TextStyle(fontSize: 11, color: Colors.black87)),
-                      if (applicationTiming.isNotEmpty)
-                        Text("Timing: $applicationTiming",
-                            style: const TextStyle(fontSize: 11, color: Colors.black87)),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              "QUANTITY",
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF43A047),
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(14),
+                                  bottomRight: Radius.circular(14),
+                                ),
+                              ),
+                              child: const Text(
+                                "RECOMMENDED FERTILIZER",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  letterSpacing: 0.5,
+                                ),
                               ),
                             ),
-                            Text(
-                              "$sacks SAKO",
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green,
+                            Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 70,
+                                    height: 70,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      Icons.shopping_bag,
+                                      size: 40,
+                                      color: const Color(0xFF43A047),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          fertilizer,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF1B5E20),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        GestureDetector(
+                                          onTap: () {
+                                            if (googleSearch.isNotEmpty) {
+                                              launchGoogleSearch(googleSearch);
+                                            }
+                                          },
+                                          child: Row(
+                                            children: [
+                                              const Icon(Icons.search, size: 14, color: Color(0xFF43A047)),
+                                              const SizedBox(width: 4),
+                                              const Text(
+                                                "Click Here to see more",
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Color(0xFF43A047),
+                                                  decoration: TextDecoration.underline,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF43A047).withOpacity(0.15),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.arrow_forward_ios,
+                                      size: 14,
+                                      color: Color(0xFF43A047),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            Text(
-                              amount,
-                              style: const TextStyle(fontSize: 11, color: Colors.grey),
                             ),
                           ],
                         ),
                       ),
+
+                      const SizedBox(height: 16),
+
+                      // ============================================
+                      // ALTERNATIVE FERTILIZER
+                      // ============================================
+                      Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF3E0),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFFB8C00), width: 1.5),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFFB8C00),
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(14),
+                                  bottomRight: Radius.circular(14),
+                                ),
+                              ),
+                              child: const Text(
+                                "ALTERNATIVE FERTILIZER",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 70,
+                                    height: 70,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      Icons.shopping_bag,
+                                      size: 40,
+                                      color: Color(0xFFFB8C00),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          alternative,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFFE65100),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        GestureDetector(
+                                          onTap: () {
+                                            if (alternative != 'N/A' && alternative.isNotEmpty) {
+                                              final altSearch =
+                                                  'https://www.google.com/search?q=${Uri.encodeComponent(alternative + " fertilizer")}&tbm=isch';
+                                              launchGoogleSearch(altSearch);
+                                            }
+                                          },
+                                          child: Row(
+                                            children: [
+                                              const Icon(Icons.search, size: 14, color: Color(0xFFFB8C00)),
+                                              const SizedBox(width: 4),
+                                              const Text(
+                                                "Click Here to see more",
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Color(0xFFFB8C00),
+                                                  decoration: TextDecoration.underline,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFB8C00).withOpacity(0.15),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.arrow_forward_ios,
+                                      size: 14,
+                                      color: Color(0xFFFB8C00),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // ============================================
+                      // RECOMMENDED AMOUNT
+                      // ============================================
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8F5E9),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF2E7D32),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.scale,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "RECOMMENDED AMOUNT",
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF2E7D32),
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    amount,
+                                    style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1B5E20),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // ============================================
+                      // APPLICATION DETAILS (3 columns)
+                      // ============================================
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F7FA),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: [
+                            // RATE
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.speed,
+                                    color: const Color(0xFF2E7D32),
+                                    size: 30,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    "Application Rate",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF666666),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    applicationRate.isNotEmpty ? applicationRate : 'N/A',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1B5E20),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            Container(
+                              height: 80,
+                              width: 1,
+                              color: Colors.grey.shade300,
+                            ),
+
+                            // MODE
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  const Icon(
+                                    Icons.water_drop,
+                                    color: Color(0xFF1565C0),
+                                    size: 30,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    "Mode of Application",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF666666),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    modeOfApplication.isNotEmpty ? modeOfApplication : 'N/A',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1B5E20),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            Container(
+                              height: 80,
+                              width: 1,
+                              color: Colors.grey.shade300,
+                            ),
+
+                            // TIMING
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  const Icon(
+                                    Icons.calendar_month,
+                                    color: Color(0xFF6A1B9A),
+                                    size: 30,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    "Application Timing",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF666666),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    applicationTiming.isNotEmpty ? applicationTiming : 'N/A',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1B5E20),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
                     ],
                   ),
                 ),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildParamChip("N", _currentReading?.nitrogen ?? '--'),
-                      _buildParamChip("P", _currentReading?.phosphorus ?? '--'),
-                      _buildParamChip("K", _currentReading?.potassium ?? '--'),
-                      _buildParamChip("pH", _currentReading?.ph ?? '--'),
-                    ],
+              ),
+
+              // ============================================
+              // BOTTOM BUTTONS
+              // ============================================
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24),
                   ),
                 ),
-                const SizedBox(height: 12),
-                GestureDetector(
-                  onTap: () {
-                    if (googleSearch.isNotEmpty) {
-                      launchGoogleSearch(googleSearch);
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue.shade200),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.info_outline, color: Colors.blue, size: 16),
-                        const SizedBox(width: 8),
-                        const Text(
-                          "Click Here to see more about this fertilizer",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.blue,
+                child: Row(
+                  children: [
+                    // SAVE BUTTON
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          if (_currentReading != null && _recommendationResult != null) {
+                            final reading = SensorReading(
+                              nitrogen: _currentReading!.nitrogen,
+                              phosphorus: _currentReading!.phosphorus,
+                              potassium: _currentReading!.potassium,
+                              ph: _currentReading!.ph,
+                              timestamp: DateTime.now(),
+                              fertilizerType: fertilizer,
+                              fertilizerImageUrl: imageUrl,
+                              alternativeType: alternative,
+                              recommendedSacks: 0,
+                              amount: amount,
+                              npkAnalysis: '',
+                            );
+                            _saveToHistory(reading);
+                          }
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Saved to history!'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF2E7D32),
+                          side: const BorderSide(color: Color(0xFF2E7D32), width: 1.5),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        const Icon(Icons.arrow_forward, color: Colors.blue, size: 14),
-                      ],
+                        icon: const Icon(Icons.bookmark_border, size: 20),
+                        label: const Text(
+                          "Save in History",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+
+                    const SizedBox(width: 12),
+
+                    // GOT IT BUTTON
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF43A047),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          elevation: 4,
+                          shadowColor: Colors.green.withOpacity(0.4),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        icon: const Icon(Icons.check, size: 20),
+                        label: const Text(
+                          "Got it",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Close"),
-            ),
-            ElevatedButton.icon(
-              onPressed: () {
-                if (_currentReading != null && _recommendationResult != null) {
-                  final reading = SensorReading(
-                    nitrogen: _currentReading!.nitrogen,
-                    phosphorus: _currentReading!.phosphorus,
-                    potassium: _currentReading!.potassium,
-                    ph: _currentReading!.ph,
-                    timestamp: DateTime.now(),
-                    fertilizerType: fertilizer,
-                    fertilizerImageUrl: imageUrl,
-                    alternativeType: alternative,
-                    recommendedSacks: sacks,
-                    amount: amount,
-                    npkAnalysis: npk,
-                  );
-                  _saveToHistory(reading);
-                }
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Saved!'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-              icon: const Icon(Icons.save, size: 18),
-              label: const Text("Save"),
-            ),
-          ],
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
   Widget _buildNpkBar(String label, String value, Color color) {
     double val = double.tryParse(value) ?? 0;
