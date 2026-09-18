@@ -437,44 +437,236 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
   // MOISTURE REMINDER
   // ============================================
   void showMoistureReminderDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: Colors.blue.shade50, shape: BoxShape.circle),
-                child: const Icon(Icons.water_drop, color: Colors.blue, size: 24),
-              ),
-              const SizedBox(width: 12),
-              const Text("💧 Moisture Reminder", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ],
+  showDialog(
+    context: context,
+    builder: (context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28),
+        ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
           ),
-          content: const Column(
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("🌱 Keep soil moist, but not waterlogged.", style: TextStyle(fontSize: 15)),
-              SizedBox(height: 8),
-              Text("⏰ Water early morning or late afternoon.", style: TextStyle(fontSize: 14, color: Colors.black54)),
-              SizedBox(height: 4),
-              Text("💧 This helps prevent evaporation and root rot.", style: TextStyle(fontSize: 14, color: Colors.black54)),
+              // HEADER
+              Row(
+                children: [
+                  Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F5E9),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.green.shade100,
+                          blurRadius: 10,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.water_drop,
+                      color: Color(0xFF2E7D32),
+                      size: 36,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.water_drop,
+                          color: Color(0xFF42A5F5),
+                          size: 20,
+                        ),
+                        SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            "Moisture Reminder",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1B5E20),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F5E9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close,
+                        size: 20,
+                        color: Color(0xFF2E7D32),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // ITEM 1
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 45,
+                    height: 45,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F5E9),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.eco,
+                      color: Color(0xFF43A047),
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 10),
+                      child: Text(
+                        "Keep soil moist, but not waterlogged.",
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Color(0xFF333333),
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 18),
+
+              // ITEM 2
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 45,
+                    height: 45,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE3F2FD),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.access_time,
+                      color: Color(0xFF1E88E5),
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 10),
+                      child: Text(
+                        "Water early morning or late afternoon.",
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Color(0xFF333333),
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 18),
+
+              // ITEM 3
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 45,
+                    height: 45,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE3F2FD),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.water_drop,
+                      color: Color(0xFF42A5F5),
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 10),
+                      child: Text(
+                        "This helps prevent evaporation and root rot.",
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Color(0xFF333333),
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 28),
+
+              // BUTTON
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF43A047),
+                    foregroundColor: Colors.white,
+                    elevation: 4,
+                    shadowColor: Colors.green.withOpacity(0.4),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Got it",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward, size: 20),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Got it", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
+        ),
+      );
+    },
+  );
+}
   // ============================================
   // GOOGLE SEARCH
   // ============================================
