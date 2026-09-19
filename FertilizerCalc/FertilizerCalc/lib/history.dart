@@ -10,10 +10,10 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> 
-    with AutomaticKeepAliveClientMixin {  // ← PARA HINDI MAG-RESTART!
+    with AutomaticKeepAliveClientMixin {
 
   @override
-  bool get wantKeepAlive => true;  // ← PARA HINDI MAG-RESTART!
+  bool get wantKeepAlive => true;
 
   List<SensorReading> _history = [];
   bool _isLoading = true;
@@ -70,44 +70,19 @@ class _HistoryScreenState extends State<HistoryScreen>
     }
   }
 
-  Future<void> _updateFeedback(int id, bool isThumbsUp) async {
-    try {
-      final db = DatabaseHelper();
-      await db.updateFeedback(id, isThumbsUp);
-      _loadHistory();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isThumbsUp
-                ? 'Thanks for your feedback! 👍'
-                : 'Feedback recorded 👎',
-          ),
-          backgroundColor: isThumbsUp ? Colors.green : Colors.orange,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error updating feedback: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    super.build(context);  // ← IMPORTANTE PARA KEEP ALIVE!
+    super.build(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         title: const Text(
           "History",
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: Color(0xFF1B5E20),
           ),
         ),
         backgroundColor: Colors.white,
@@ -115,16 +90,14 @@ class _HistoryScreenState extends State<HistoryScreen>
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.green),
+            icon: const Icon(Icons.refresh, color: Color(0xFF43A047)),
             onPressed: _loadHistory,
           ),
         ],
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(
-                color: Colors.green,
-              ),
+              child: CircularProgressIndicator(color: Color(0xFF43A047)),
             )
           : _history.isEmpty
               ? _buildEmptyState()
@@ -137,27 +110,34 @@ class _HistoryScreenState extends State<HistoryScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.history,
-            size: 80,
-            color: Colors.grey.shade300,
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: Color(0xFFE8F5E9),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.history,
+              size: 60,
+              color: Color(0xFF43A047),
+            ),
           ),
-          const SizedBox(height: 16),
-          Text(
+          const SizedBox(height: 20),
+          const Text(
             "No History Records",
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.grey.shade600,
+              color: Color(0xFF1B5E20),
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          const Text(
             "Connect to your soil sensor and get\nyour first recommendation!",
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey.shade400,
+              color: Colors.grey,
             ),
           ),
         ],
@@ -171,251 +151,182 @@ class _HistoryScreenState extends State<HistoryScreen>
       itemCount: _history.length,
       itemBuilder: (context, index) {
         final item = _history[index];
-        final isEven = index % 2 == 0;
 
         return Container(
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isEven ? Colors.grey.shade50 : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.shade200,
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          child: ExpansionTile(
-            leading: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.agriculture,
-                color: Colors.green,
-                size: 24,
-              ),
-            ),
-            title: Text(
-              "Recommendation #${item.id ?? index + 1}",
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-            ),
-            subtitle: Text(
-              item.timestamp.toString().substring(0, 19),
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (item.feedback != null)
-                  Icon(
-                    item.feedback == true ? Icons.thumb_up : Icons.thumb_down,
-                    color: item.feedback == true ? Colors.green : Colors.red,
-                    size: 20,
-                  ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(
-                    Icons.delete_outline,
-                    color: Colors.red,
-                    size: 20,
-                  ),
-                  onPressed: () {
-                    _showDeleteDialog(item.id ?? 0);
-                  },
-                ),
-              ],
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
+              // ============================================
+              // HEADER
+              // ============================================
+              Row(
+                children: [
+                  Container(
+                    width: 45,
+                    height: 45,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F5E9),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.eco,
+                      color: Color(0xFF43A047),
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Recommendation #${item.id ?? index + 1}",
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1B5E20),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          item.timestamp.toString().substring(0, 19),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.red,
+                      size: 22,
+                    ),
+                    onPressed: () => _showDeleteDialog(item.id ?? 0),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // ============================================
+              // SOIL PARAMETERS
+              // ============================================
+              const Text(
+                "Soil Parameters:",
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF333333),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  _buildParamChip("N", item.nitrogen, Colors.green),
+                  const SizedBox(width: 6),
+                  _buildParamChip("P", item.phosphorus, Colors.orange),
+                  const SizedBox(width: 6),
+                  _buildParamChip("K", item.potassium, Colors.blue),
+                  const SizedBox(width: 6),
+                  _buildParamChip("pH", item.ph, Colors.purple),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // ============================================
+              // RECOMMENDATION
+              // ============================================
+              const Text(
+                "Recommendation:",
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF333333),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF43A047).withOpacity(0.3)),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "Soil Parameters:",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        _buildParamChip("N", item.nitrogen, Colors.green),
-                        const SizedBox(width: 8),
-                        _buildParamChip("P", item.phosphorus, Colors.orange),
-                        const SizedBox(width: 8),
-                        _buildParamChip("K", item.potassium, Colors.blue),
-                        const SizedBox(width: 8),
-                        _buildParamChip("pH", item.ph, Colors.purple),
-                      ],
-                    ),
-                    const Divider(height: 20),
-
-                    const Text(
-                      "Recommendation:",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.green.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    if (item.fertilizerType != null && item.fertilizerType!.isNotEmpty)
+                      Row(
                         children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.eco, size: 16, color: Colors.green),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  item.fertilizerType ?? 'N/A',
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.green,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Icon(Icons.swap_horiz, size: 16, color: Colors.orange),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  "Alternative: ${item.alternativeType ?? 'N/A'}",
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.orange,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Icon(Icons.inbox, size: 16, color: Colors.blue),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  "${item.recommendedSacks ?? 0} sacks (${item.amount ?? 'N/A'})",
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (item.npkAnalysis != null && item.npkAnalysis!.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.analytics, size: 16, color: Colors.green),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Text(
-                                      "NPK: ${item.npkAnalysis}",
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.green,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                          const Icon(Icons.eco, size: 16, color: Color(0xFF43A047)),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              item.fertilizerType!,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1B5E20),
                               ),
                             ),
-                          if (item.fertilizerImageUrl != null && item.fertilizerImageUrl!.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.image, size: 16, color: Colors.grey),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Text(
-                                      "Image: ${item.fertilizerImageUrl}",
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.grey,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                          ),
                         ],
                       ),
-                    ),
-                    const Divider(height: 20),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Was this recommendation helpful?",
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                    if (item.alternativeType != null && item.alternativeType!.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(Icons.swap_horiz, size: 16, color: Color(0xFFFB8C00)),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              "Alternative: ${item.alternativeType}",
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFFE65100),
+                              ),
+                            ),
                           ),
-                        ),
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: Icon(
-                                Icons.thumb_up,
-                                color: item.feedback == true
-                                    ? Colors.green
-                                    : Colors.grey.shade400,
+                        ],
+                      ),
+                    ],
+                    if (item.amount != null && item.amount!.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(Icons.scale, size: 16, color: Color(0xFF1565C0)),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              item.amount!,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF1565C0),
+                                fontWeight: FontWeight.w500,
                               ),
-                              onPressed: () {
-                                _updateFeedback(
-                                  item.id ?? 0,
-                                  true,
-                                );
-                              },
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
                             ),
-                            const SizedBox(width: 8),
-                            IconButton(
-                              icon: Icon(
-                                Icons.thumb_down,
-                                color: item.feedback == false
-                                    ? Colors.red
-                                    : Colors.grey.shade400,
-                              ),
-                              onPressed: () {
-                                _updateFeedback(
-                                  item.id ?? 0,
-                                  false,
-                                );
-                              },
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -428,17 +339,17 @@ class _HistoryScreenState extends State<HistoryScreen>
 
   Widget _buildParamChip(String label, String value, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.2)),
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.25)),
       ),
       child: Text(
         "$label: $value",
         style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
           color: color,
         ),
       ),
@@ -450,14 +361,13 @@ class _HistoryScreenState extends State<HistoryScreen>
       context: context,
       builder: (context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Text("Delete Record"),
-          content: const Text(
-            "Are you sure you want to delete this record?",
-          ),
+          content: const Text("Are you sure you want to delete this record?"),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
+              child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -466,6 +376,9 @@ class _HistoryScreenState extends State<HistoryScreen>
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
               ),
               child: const Text("Delete"),
             ),
