@@ -11,7 +11,10 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {  // 👈 DAGDAG ITO!
+
+  @override
+  bool get wantKeepAlive => true;  // 👈 DAGDAG ITO!
 
   late DashboardLogic _logic;
   late AnimationController _bounceController;
@@ -46,6 +49,8 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);  // 👈 IMPORTANTE ITO PARA KEEP ALIVE!
+
     return AnimatedBuilder(
       animation: _logic,
       builder: (context, child) {
