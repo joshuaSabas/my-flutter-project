@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dashboard_screen.dart';
+import 'existing_data_screen.dart';
+import 'database/database_helper.dart';
 import 'welcome_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -31,24 +33,12 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 1400),
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(
-      CurvedAnimation(
-        parent: _logoController,
-        curve: Curves.easeIn,
-      ),
+    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.easeIn),
     );
 
-    _scaleAnimation = Tween<double>(
-      begin: .7,
-      end: 1,
-    ).animate(
-      CurvedAnimation(
-        parent: _logoController,
-        curve: Curves.easeOutBack,
-      ),
+    _scaleAnimation = Tween<double>(begin: .7, end: 1).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.easeOutBack),
     );
 
     _floatController = AnimationController(
@@ -60,10 +50,7 @@ class _SplashScreenState extends State<SplashScreen>
       begin: const Offset(0, .02),
       end: const Offset(0, -.02),
     ).animate(
-      CurvedAnimation(
-        parent: _floatController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _floatController, curve: Curves.easeInOut),
     );
 
     _bgController = AnimationController(
@@ -71,14 +58,8 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(seconds: 4),
     );
 
-    _backgroundScale = Tween<double>(
-      begin: 1.15,
-      end: 1.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _bgController,
-        curve: Curves.easeOut,
-      ),
+    _backgroundScale = Tween<double>(begin: 1.15, end: 1.0).animate(
+      CurvedAnimation(parent: _bgController, curve: Curves.easeOut),
     );
 
     _logoController.forward();
@@ -93,6 +74,7 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _navigateToNext() async {
     final prefs = await SharedPreferences.getInstance();
     final hasSeenWelcome = prefs.getBool('hasSeenWelcome') ?? false;
+    final hasData = await DatabaseHelper().hasExistingData();
 
     if (!mounted) return;
 
@@ -103,13 +85,21 @@ class _SplashScreenState extends State<SplashScreen>
           transitionDuration: const Duration(milliseconds: 700),
           pageBuilder: (_, animation, __) => const DashboardScreen(),
           transitionsBuilder: (_, animation, __, child) {
-            return FadeTransition(
-              opacity: animation,
-              child: child,
-            );
+            return FadeTransition(opacity: animation, child: child);
           },
         ),
       );
+
+      if (hasData) {
+        Future.delayed(const Duration(milliseconds: 800), () {
+          if (!mounted) return;
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => const ExistingDataScreen(),
+          );
+        });
+      }
     } else {
       Navigator.pushReplacement(
         context,
@@ -117,10 +107,7 @@ class _SplashScreenState extends State<SplashScreen>
           transitionDuration: const Duration(milliseconds: 700),
           pageBuilder: (_, animation, __) => const WelcomeScreen(),
           transitionsBuilder: (_, animation, __, child) {
-            return FadeTransition(
-              opacity: animation,
-              child: child,
-            );
+            return FadeTransition(opacity: animation, child: child);
           },
         ),
       );
@@ -163,9 +150,7 @@ class _SplashScreenState extends State<SplashScreen>
                   },
                 ),
               ),
-              Container(
-                color: Colors.black.withOpacity(.25),
-              ),
+              Container(color: Colors.black.withOpacity(.25)),
               Center(
                 child: SlideTransition(
                   position: _floatAnimation,
