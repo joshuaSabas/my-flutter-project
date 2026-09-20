@@ -2,9 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
-import 'existing_data_screen.dart';
-import 'database/database_helper.dart';
 import 'welcome_screen.dart';
+import 'database/database_helper.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -18,7 +17,6 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _logoController;
   late AnimationController _floatController;
   late AnimationController _bgController;
-
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _backgroundScale;
@@ -27,44 +25,35 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-
     _logoController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1400),
     );
-
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.easeIn),
     );
-
     _scaleAnimation = Tween<double>(begin: .7, end: 1).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.easeOutBack),
     );
-
     _floatController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
-
     _floatAnimation = Tween<Offset>(
       begin: const Offset(0, .02),
       end: const Offset(0, -.02),
     ).animate(
       CurvedAnimation(parent: _floatController, curve: Curves.easeInOut),
     );
-
     _bgController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 4),
     );
-
     _backgroundScale = Tween<double>(begin: 1.15, end: 1.0).animate(
       CurvedAnimation(parent: _bgController, curve: Curves.easeOut),
     );
-
     _logoController.forward();
     _bgController.forward();
-
     Timer(const Duration(milliseconds: 3500), () {
       if (!mounted) return;
       _navigateToNext();
@@ -75,32 +64,20 @@ class _SplashScreenState extends State<SplashScreen>
     final prefs = await SharedPreferences.getInstance();
     final hasSeenWelcome = prefs.getBool('hasSeenWelcome') ?? false;
     final hasData = await DatabaseHelper().hasExistingData();
-
     if (!mounted) return;
 
     if (hasSeenWelcome) {
-      // HomeScreen owns the only BottomNavigationBar.
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 700),
-          pageBuilder: (_, animation, __) => const HomeScreen(),
+          pageBuilder: (_, animation, __) =>
+              HomeScreen(hasExistingData: hasData),
           transitionsBuilder: (_, animation, __, child) {
             return FadeTransition(opacity: animation, child: child);
           },
         ),
       );
-
-      if (hasData) {
-        Future.delayed(const Duration(milliseconds: 800), () {
-          if (!mounted) return;
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) => const ExistingDataScreen(),
-          );
-        });
-      }
     } else {
       Navigator.pushReplacement(
         context,
@@ -141,11 +118,7 @@ class _SplashScreenState extends State<SplashScreen>
                     return Container(
                       color: Colors.green.shade100,
                       child: const Center(
-                        child: Icon(
-                          Icons.agriculture,
-                          size: 80,
-                          color: Colors.green,
-                        ),
+                        child: Icon(Icons.agriculture, size: 80, color: Colors.green),
                       ),
                     );
                   },
