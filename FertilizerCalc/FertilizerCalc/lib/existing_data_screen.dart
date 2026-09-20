@@ -15,8 +15,6 @@ class ExistingDataScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-
-              // ICON
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -36,10 +34,7 @@ class ExistingDataScreen extends StatelessWidget {
                   color: Color(0xFF43A047),
                 ),
               ),
-
               const SizedBox(height: 28),
-
-              // TITLE
               const Text(
                 "Delete My Data?",
                 textAlign: TextAlign.center,
@@ -49,10 +44,7 @@ class ExistingDataScreen extends StatelessWidget {
                   color: Color(0xFF1B5E20),
                 ),
               ),
-
               const SizedBox(height: 12),
-
-              // DESCRIPTION
               const Text(
                 "Are you sure you want to delete your soil data? This action cannot be undone.",
                 textAlign: TextAlign.center,
@@ -62,19 +54,12 @@ class ExistingDataScreen extends StatelessWidget {
                   height: 1.5,
                 ),
               ),
-
               const Spacer(),
-
-              // CANCEL BUTTON
               SizedBox(
                 width: double.infinity,
                 height: 55,
                 child: OutlinedButton(
-                  onPressed: () {
-                    // Close this screen/dialog and return to HomeScreen,
-                    // where the single bottom navigation is preserved.
-                    Navigator.pop(context);
-                  },
+                  onPressed: () => Navigator.pop(context),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFE53935),
                     side: const BorderSide(color: Color(0xFFE53935), width: 1.5),
@@ -84,28 +69,18 @@ class ExistingDataScreen extends StatelessWidget {
                   ),
                   child: const Text(
                     "Cancel",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
-
               const SizedBox(height: 12),
-
-              // DELETE BUTTON
               SizedBox(
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
                   onPressed: () async {
                     await DatabaseHelper().deleteAllData();
-                    if (context.mounted) {
-                      // Close this screen/dialog instead of pushing a new
-                      // DashboardScreen without the bottom navigation.
-                      Navigator.pop(context);
-                    }
+                    if (context.mounted) Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF43A047),
@@ -118,14 +93,10 @@ class ExistingDataScreen extends StatelessWidget {
                   ),
                   child: const Text(
                     "Delete",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
-
               const SizedBox(height: 16),
             ],
           ),
