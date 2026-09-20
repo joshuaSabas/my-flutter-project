@@ -11,7 +11,6 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-
   @override
   bool get wantKeepAlive => true;
 
