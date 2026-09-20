@@ -28,7 +28,9 @@ class _HistoryScreenState extends State<HistoryScreen>
     setState(() => _isLoading = true);
 
     try {
-      final data = await DatabaseHelper().getAllRecommendations();
+      final db = DatabaseHelper();
+      final data = await db.getAllRecommendations();
+
       if (!mounted) return;
       setState(() {
         _history = data;
@@ -43,10 +45,11 @@ class _HistoryScreenState extends State<HistoryScreen>
 
   Future<void> _deleteHistory(int id) async {
     try {
-      await DatabaseHelper().deleteRecommendation(id);
+      final db = DatabaseHelper();
+      await db.deleteRecommendation(id);
       await _loadHistory();
     } catch (e) {
-      debugPrint('Error deleting history: $e');
+      debugPrint('Error deleting: $e');
     }
   }
 
@@ -132,10 +135,11 @@ class _HistoryScreenState extends State<HistoryScreen>
       itemCount: _history.length,
       itemBuilder: (context, index) {
         final item = _history[index];
-        final timestamp = item.timestamp.toString();
-        final formattedTimestamp = timestamp.length > 19
-            ? timestamp.substring(0, 19)
-            : timestamp;
+
+        final timestampText = item.timestamp.toLocal().toString();
+        final safeTimestamp = timestampText.length > 19
+            ? timestampText.substring(0, 19)
+            : timestampText;
 
         return Container(
           margin: const EdgeInsets.only(bottom: 14),
@@ -180,7 +184,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          formattedTimestamp,
+                          safeTimestamp,
                           style: const TextStyle(fontSize: 11, color: Colors.grey),
                         ),
                       ],
@@ -228,20 +232,18 @@ class _HistoryScreenState extends State<HistoryScreen>
                 decoration: BoxDecoration(
                   color: const Color(0xFFE8F5E9),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFF43A047).withOpacity(0.3),
-                  ),
+                  border: Border.all(color: const Color(0xFF43A047).withOpacity(0.3)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (item.fertilizerType?.isNotEmpty ?? false)
+                    if (item.fertilizerType != null && item.fertilizerType!.isNotEmpty)
                       _buildRecommendationRow(
                         Icons.eco,
                         item.fertilizerType!,
-                        const Color(0xFF1B5E20),
+                        const Color(0xFF43A047),
                       ),
-                    if (item.alternativeType?.isNotEmpty ?? false) ...[
+                    if (item.alternativeType != null && item.alternativeType!.isNotEmpty) ...[
                       const SizedBox(height: 6),
                       _buildRecommendationRow(
                         Icons.swap_horiz,
@@ -249,7 +251,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                         const Color(0xFFE65100),
                       ),
                     ],
-                    if (item.amount?.isNotEmpty ?? false) ...[
+                    if (item.amount != null && item.amount!.isNotEmpty) ...[
                       const SizedBox(height: 6),
                       _buildRecommendationRow(
                         Icons.scale,
