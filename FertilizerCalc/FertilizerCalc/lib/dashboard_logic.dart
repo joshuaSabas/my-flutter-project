@@ -113,44 +113,85 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> connectToDevice() async {
-    _isLoading = true;
-    _errorMessage = '';
-    notifyListeners();
-    try {
-      if (!await _bluetoothService.isBluetoothEnabled() && !await _bluetoothService.requestEnableBluetooth()) {
-        _errorMessage = 'Bluetooth must be enabled to connect';
-        return;
-      }
-      if (!await BluetoothPermissions.requestPermissions()) {
-        _errorMessage = 'Bluetooth permissions are required';
-        return;
-      }
-      _isScanning = true;
-      notifyListeners();
-      final devices = await _bluetoothService.scanDevices();
-      _isScanning = false;
-      if (devices.isEmpty) {
-        _errorMessage = 'No Bluetooth devices found';
-        return;
-      }
-      final selected = await BluetoothDialog.show(context: context, devices: devices);
-      if (selected == null) return;
-      if (await _bluetoothService.connect(selected)) {
-        _isConnected = true;
-        _deviceName = selected.name ?? 'Soil Sensor';
-        _startListeningForData();
-      } else {
-        _errorMessage = 'Failed to connect to ${selected.name}';
-      }
-    } catch (e) {
-      _errorMessage = 'Connection error: $e';
-    } finally {
+  _isLoading = true;
+  _errorMessage = '';
+  notifyListeners();
+
+  try {
+    // ============================================
+    // STEP 1: CHECK KUNG NAKA-ON ANG BLUETOOTH
+    // ============================================
+    final isEnabled = await _bluetoothService.isBluetoothEnabled();
+
+    if (!isEnabled) {
+      // HUWAG NANG MAG-REQUEST NA I-ON — I-SHOW ANG DIALOG NA LANG
+      _errorMessage = 'Bluetooth is disabled. Please enable Bluetooth.';
       _isLoading = false;
-      _isScanning = false;
       notifyListeners();
-      await _saveState();
+      _showBluetoothDisabledDialog();
+      return;
     }
+
+    // ============================================
+    // STEP 2: REQUEST PERMISSIONS
+    // ============================================
+    if (!await BluetoothPermissions.requestPermissions()) {
+      _errorMessage = 'Bluetooth permissions are required';
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
+
+    // ============================================
+    // STEP 3: SCAN DEVICES
+    // ============================================
+    _isScanning = true;
+    notifyListeners();
+
+    final devices = await _bluetoothService.scanDevices();
+
+    _isScanning = false;
+
+    if (devices.isEmpty) {
+      _errorMessage = 'No Bluetooth devices found';
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
+
+    // ============================================
+    // STEP 4: I-SHOW ANG DEVICE DIALOG
+    // ============================================
+    final selected = await BluetoothDialog.show(
+      context: context,
+      devices: devices,
+    );
+
+    if (selected == null) {
+      _isLoading = false;
+      notifyListeners();
+      return;
+    }
+
+    // ============================================
+    // STEP 5: I-CONNECT SA DEVICE
+    // ============================================
+    if (await _bluetoothService.connect(selected)) {
+      _isConnected = true;
+      _deviceName = selected.name ?? 'Soil Sensor';
+      _startListeningForData();
+    } else {
+      _errorMessage = 'Failed to connect to ${selected.name}';
+    }
+  } catch (e) {
+    _errorMessage = 'Connection error: $e';
+  } finally {
+    _isLoading = false;
+    _isScanning = false;
+    notifyListeners();
+    await _saveState();
   }
+}
 
   void _startListeningForData() {
     if (_isListening || _bluetoothService.connection?.input == null) return;
