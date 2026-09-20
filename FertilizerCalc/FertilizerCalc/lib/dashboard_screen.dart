@@ -32,7 +32,6 @@ class _DashboardScreenState extends State<DashboardScreen>
       CurvedAnimation(parent: _bounceController, curve: Curves.easeInOut),
     );
     _bounceController.repeat(reverse: true);
-
     _logic.setBounceController(_bounceController, _bounceAnimation);
   }
 
