@@ -1,6 +1,6 @@
 import 'package:flutter_bluetooth_serial_plus/flutter_bluetooth_serial_plus.dart';
 import 'package:flutter/services.dart';
-import 'dart:typed_data';  // ← IDAGDAG ITO!
+import 'dart:typed_data';
 
 class BluetoothService {
   final FlutterBluetoothSerial _bluetooth = FlutterBluetoothSerial.instance;
@@ -23,17 +23,19 @@ class BluetoothService {
   }
 
   // ============================================
-  // REQUEST TO ENABLE BLUETOOTH
+  // REQUEST TO ENABLE BLUETOOTH — FIXED!
+  // HUWAG GAMITIN ANG requestEnable() — NAG-E-EXIT SA APP
+  // SA HALIP, I-CHECK LANG KUNG NAKA-ON.
   // ============================================
   Future<bool> requestEnableBluetooth() async {
     try {
-      final result = await _bluetooth.requestEnable();
-      return result ?? false;
-    } on PlatformException catch (e) {
-      print('PlatformException: $e');
-      return false;
+      // HUWAG GAMITIN ANG _bluetooth.requestEnable() —
+      // NAG-O-OPEN ITO NG SYSTEM DIALOG NA NAG-E-EXIT SA APP
+      // KAPAG NAG-CANCEL ANG USER.
+      // SA HALIP, I-CHECK LANG KUNG NAKA-ON ANG BLUETOOTH.
+      return await isBluetoothEnabled();
     } catch (e) {
-      print('Error enabling Bluetooth: $e');
+      print('Error requesting Bluetooth: $e');
       return false;
     }
   }
@@ -104,12 +106,12 @@ class BluetoothService {
   BluetoothConnection? get connection => _connection;
 
   // ============================================
-  // SEND DATA TO DEVICE - FIXED!
+  // SEND DATA TO DEVICE
   // ============================================
   void sendData(String data) {
     try {
       if (_connection != null && _connection!.isConnected) {
-        _connection!.output.add(Uint8List.fromList(data.codeUnits));  // ← BINAGO!
+        _connection!.output.add(Uint8List.fromList(data.codeUnits));
       }
     } catch (e) {
       print('Error sending data: $e');
@@ -117,12 +119,12 @@ class BluetoothService {
   }
 
   // ============================================
-  // SEND BYTES TO DEVICE - FIXED!
+  // SEND BYTES TO DEVICE
   // ============================================
   void sendBytes(List<int> bytes) {
     try {
       if (_connection != null && _connection!.isConnected) {
-        _connection!.output.add(Uint8List.fromList(bytes));  // ← BINAGO!
+        _connection!.output.add(Uint8List.fromList(bytes));
       }
     } catch (e) {
       print('Error sending bytes: $e');
