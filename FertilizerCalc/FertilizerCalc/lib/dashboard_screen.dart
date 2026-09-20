@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dashboard_logic.dart';
 import 'dashboard_widgets.dart';
-import 'history.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -12,15 +11,12 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-
   @override
   bool get wantKeepAlive => true;
 
   late DashboardLogic _logic;
   late AnimationController _bounceController;
   late Animation<double> _bounceAnimation;
-
-  int _currentIndex = 0;
 
   @override
   void initState() {
@@ -60,37 +56,11 @@ class _DashboardScreenState extends State<DashboardScreen>
             _logic,
             (index) => _logic.onDrawerTap(index),
           ),
-          body: IndexedStack(
-            index: _currentIndex,
-            children: [
-              DashboardWidgets.buildDashboardBody(
-                context: context,
-                logic: _logic,
-                bounceAnimation: _bounceAnimation,
-                onDrawerTap: (index) => _logic.onDrawerTap(index),
-              ),
-              const HistoryScreen(),
-            ],
-          ),
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-            selectedItemColor: const Color(0xFF2E7D32),
-            unselectedItemColor: Colors.grey,
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.dashboard),
-                label: 'Dashboard',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.history),
-                label: 'History',
-              ),
-            ],
+          body: DashboardWidgets.buildDashboardBody(
+            context: context,
+            logic: _logic,
+            bounceAnimation: _bounceAnimation,
+            onDrawerTap: (index) => _logic.onDrawerTap(index),
           ),
         );
       },
