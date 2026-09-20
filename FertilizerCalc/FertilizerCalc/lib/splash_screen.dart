@@ -72,47 +72,47 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _navigateToNext() async {
-    final prefs = await SharedPreferences.getInstance();
-    final hasSeenWelcome = prefs.getBool('hasSeenWelcome') ?? false;
-    final hasData = await DatabaseHelper().hasExistingData();
+  final prefs = await SharedPreferences.getInstance();
+  final hasSeenWelcome = prefs.getBool('hasSeenWelcome') ?? false;
+  final hasData = await DatabaseHelper().hasExistingData();
 
-    if (!mounted) return;
+  if (!mounted) return;
 
-    if (hasSeenWelcome) {
-      Navigator.pushReplacement(
-        context,
-        PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 700),
-          pageBuilder: (_, animation, __) => const DashboardScreen(),
-          transitionsBuilder: (_, animation, __, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-        ),
-      );
+  if (hasSeenWelcome) {
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 700),
+        pageBuilder: (_, animation, __) => const DashboardScreen(),
+        transitionsBuilder: (_, animation, __, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    );
 
-      if (hasData) {
-        Future.delayed(const Duration(milliseconds: 800), () {
-          if (!mounted) return;
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) => const ExistingDataScreen(),
-          );
-        });
-      }
-    } else {
-      Navigator.pushReplacement(
-        context,
-        PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 700),
-          pageBuilder: (_, animation, __) => const WelcomeScreen(),
-          transitionsBuilder: (_, animation, __, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-        ),
-      );
+    if (hasData) {
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (!mounted) return;
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const ExistingDataScreen(),
+        );
+      });
     }
+  } else {
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 700),
+        pageBuilder: (_, animation, __) => const WelcomeScreen(),
+        transitionsBuilder: (_, animation, __, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    );
   }
+}
 
   @override
   void dispose() {
