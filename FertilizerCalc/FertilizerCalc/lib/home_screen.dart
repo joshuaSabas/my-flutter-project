@@ -6,7 +6,10 @@ import 'existing_data_screen.dart';
 class HomeScreen extends StatefulWidget {
   final bool hasExistingData;
 
-  const HomeScreen({super.key, this.hasExistingData = false});
+  const HomeScreen({
+    super.key,
+    this.hasExistingData = false,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -40,8 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Keep both tabs mounted. This prevents DashboardScreen and
-      // HistoryScreen from being disposed and recreated when switching tabs.
+      // Keep both screens mounted so switching tabs does not reset their state.
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,
