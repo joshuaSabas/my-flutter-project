@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'history.dart';
+import 'existing_data_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final bool hasExistingData;
+
+  const HomeScreen({super.key, this.hasExistingData = false});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -16,6 +19,23 @@ class _HomeScreenState extends State<HomeScreen> {
     DashboardScreen(),
     HistoryScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.hasExistingData) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const ExistingDataScreen(),
+          ),
+        );
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
