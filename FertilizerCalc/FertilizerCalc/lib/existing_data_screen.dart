@@ -28,19 +28,31 @@ class ExistingDataScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Icon(Icons.delete_outline, size: 60, color: Color(0xFF43A047)),
+                child: const Icon(
+                  Icons.delete_outline,
+                  size: 60,
+                  color: Color(0xFF43A047),
+                ),
               ),
               const SizedBox(height: 28),
               const Text(
                 "Delete My Data?",
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1B5E20)),
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1B5E20),
+                ),
               ),
               const SizedBox(height: 12),
               const Text(
                 "Are you sure you want to delete your soil data? This action cannot be undone.",
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 15, color: Color(0xFF666666), height: 1.5),
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Color(0xFF666666),
+                  height: 1.5,
+                ),
               ),
               const Spacer(),
               SizedBox(
@@ -51,9 +63,17 @@ class ExistingDataScreen extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFE53935),
                     side: const BorderSide(color: Color(0xFFE53935), width: 1.5),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
                   ),
-                  child: const Text("Cancel", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    "Cancel",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -63,16 +83,26 @@ class ExistingDataScreen extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () async {
                     await DatabaseHelper().deleteAllData();
-                    if (context.mounted) Navigator.pop(context);
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF43A047),
                     foregroundColor: Colors.white,
                     elevation: 4,
                     shadowColor: Colors.green.withOpacity(0.4),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
                   ),
-                  child: const Text("Delete", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    "Delete",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),

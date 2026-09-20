@@ -1,20 +1,12 @@
 import 'package:flutter/material.dart';
-import 'splash_screen.dart';
-import 'database/database_helper.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-
-  final db = DatabaseHelper();
-  final hasData = await db.hasExistingData();
-
-  runApp(FertilizerCalcApp(hasExistingData: hasData));
+  runApp(const FertilizerCalcApp());
 }
 
 class FertilizerCalcApp extends StatelessWidget {
-  final bool hasExistingData;
-
-  const FertilizerCalcApp({super.key, required this.hasExistingData});
+  const FertilizerCalcApp({super.key});
 
   @override
   Widget build(BuildContext context) {

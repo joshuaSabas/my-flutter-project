@@ -30,11 +30,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (widget.hasExistingData) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const ExistingDataScreen(),
-          ),
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const ExistingDataScreen(),
         );
       });
     }
@@ -43,7 +42,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Keep both screens mounted so switching tabs does not reset their state.
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,
