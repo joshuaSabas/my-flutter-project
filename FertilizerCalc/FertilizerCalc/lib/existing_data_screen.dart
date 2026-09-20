@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dashboard_screen.dart';
 import 'database/database_helper.dart';
 
 class ExistingDataScreen extends StatelessWidget {
@@ -72,12 +71,9 @@ class ExistingDataScreen extends StatelessWidget {
                 height: 55,
                 child: OutlinedButton(
                   onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const DashboardScreen(),
-                      ),
-                    );
+                    // Close this screen/dialog and return to HomeScreen,
+                    // where the single bottom navigation is preserved.
+                    Navigator.pop(context);
                   },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFE53935),
@@ -106,12 +102,9 @@ class ExistingDataScreen extends StatelessWidget {
                   onPressed: () async {
                     await DatabaseHelper().deleteAllData();
                     if (context.mounted) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const DashboardScreen(),
-                        ),
-                      );
+                      // Close this screen/dialog instead of pushing a new
+                      // DashboardScreen without the bottom navigation.
+                      Navigator.pop(context);
                     }
                   },
                   style: ElevatedButton.styleFrom(
