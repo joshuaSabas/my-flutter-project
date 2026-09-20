@@ -9,7 +9,7 @@ class HistoryScreen extends StatefulWidget {
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> 
+class _HistoryScreenState extends State<HistoryScreen>
     with AutomaticKeepAliveClientMixin {
 
   @override
@@ -40,12 +40,6 @@ class _HistoryScreenState extends State<HistoryScreen>
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error loading history: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
@@ -54,19 +48,8 @@ class _HistoryScreenState extends State<HistoryScreen>
       final db = DatabaseHelper();
       await db.deleteRecommendation(id);
       _loadHistory();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Record deleted'),
-          backgroundColor: Colors.orange,
-        ),
-      );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error deleting: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      print('Error deleting: $e');
     }
   }
 
@@ -74,34 +57,42 @@ class _HistoryScreenState extends State<HistoryScreen>
   Widget build(BuildContext context) {
     super.build(context);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      appBar: AppBar(
-        title: const Text(
-          "History",
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1B5E20),
+    return Container(
+      color: const Color(0xFFF5F7FA),
+      child: Column(
+        children: [
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
+            child: Row(
+              children: [
+                const Text(
+                  "History",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1B5E20),
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: Color(0xFF43A047)),
+                  onPressed: _loadHistory,
+                ),
+              ],
+            ),
           ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF43A047)),
-            onPressed: _loadHistory,
+          Expanded(
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF43A047)),
+                  )
+                : _history.isEmpty
+                    ? _buildEmptyState()
+                    : _buildHistoryList(),
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF43A047)),
-            )
-          : _history.isEmpty
-              ? _buildEmptyState()
-              : _buildHistoryList(),
     );
   }
 
@@ -169,16 +160,13 @@ class _HistoryScreenState extends State<HistoryScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ============================================
-              // HEADER
-              // ============================================
               Row(
                 children: [
                   Container(
                     width: 45,
                     height: 45,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8F5E9),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFE8F5E9),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -221,12 +209,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                   ),
                 ],
               ),
-
               const SizedBox(height: 16),
-
-              // ============================================
-              // SOIL PARAMETERS
-              // ============================================
               const Text(
                 "Soil Parameters:",
                 style: TextStyle(
@@ -247,12 +230,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                   _buildParamChip("pH", item.ph, Colors.purple),
                 ],
               ),
-
               const SizedBox(height: 16),
-
-              // ============================================
-              // RECOMMENDATION
-              // ============================================
               const Text(
                 "Recommendation:",
                 style: TextStyle(
