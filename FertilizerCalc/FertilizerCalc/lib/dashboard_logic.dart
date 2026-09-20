@@ -193,6 +193,42 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
   }
 }
 
+  void _showBluetoothDisabledDialog() {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (dialogContext) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.bluetooth_disabled, color: Colors.red),
+            SizedBox(width: 10),
+            Text('Bluetooth Required'),
+          ],
+        ),
+        content: const Text(
+          'Bluetooth is not enabled on your device.\n\nPlease turn on Bluetooth first to connect to the soil sensor.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              connectToDevice();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            child: const Text('Try Again'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
   void _startListeningForData() {
     if (_isListening || _bluetoothService.connection?.input == null) return;
     _isListening = true;
