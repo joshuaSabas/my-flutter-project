@@ -6,10 +6,7 @@ import 'existing_data_screen.dart';
 class HomeScreen extends StatefulWidget {
   final bool hasExistingData;
 
-  const HomeScreen({
-    super.key,
-    this.hasExistingData = false,
-  });
+  const HomeScreen({super.key, this.hasExistingData = false});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -48,21 +45,17 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+        onTap: (index) => setState(() => _currentIndex = index),
         selectedItemColor: const Color(0xFF2E7D32),
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard_rounded),
-            label: "Dashboard",
+            label: 'Dashboard',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.history_rounded),
-            label: "History",
+            label: 'History',
           ),
         ],
       ),
