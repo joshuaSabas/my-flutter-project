@@ -28,6 +28,9 @@ flutter:
 
   assets:
     - images/
+    - assets/
+    - assets/random_forest.json
+    - assets/labels.json
     - assets/fertilizer_rules.json
 
 # Configuration para sa App Icon
