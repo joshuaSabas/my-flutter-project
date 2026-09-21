@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dashboard_logic.dart';
 import 'dashboard_helpers.dart';
+import 'about_us_screen.dart';
 
 class DashboardWidgets {
   // ============================================
@@ -128,130 +129,184 @@ class DashboardWidgets {
     );
   }
 
-  // ============================================
-  // DRAWER — WALANG LOGO!
-  // ============================================
-  static Widget buildDrawer(BuildContext context, DashboardLogic logic, Function(int) onDrawerTap) {
-    return Drawer(
-      child: Container(
-        color: Colors.white,
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 50, 20, 25),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "FertilizerCalc",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  const Text(
-                    "v1.0.0",
-                    style: TextStyle(fontSize: 13, color: Colors.white70),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.bluetooth,
-                          size: 16,
-                          color: logic.isConnected ? Colors.greenAccent : Colors.white70,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          logic.isConnected ? "Sensor Connected" : "No Sensor",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: logic.isConnected ? Colors.greenAccent : Colors.white70,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+static Widget buildDrawer(BuildContext context, DashboardLogic logic, Function(int) onDrawerTap) {
+  return Drawer(
+    child: Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          // ============================================
+          // HEADER
+          // ============================================
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(20, 50, 20, 25),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
             ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: ListTile(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                tileColor: const Color(0xFFE8F5E9),
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.directions,
-                    color: Color(0xFF2E7D32),
-                    size: 22,
-                  ),
-                ),
-                title: const Text(
-                  "Directions",
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "FertilizerCalc",
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1B5E20),
+                    color: Colors.white,
                   ),
                 ),
-                trailing: const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: Color(0xFF2E7D32),
+                const SizedBox(height: 2),
+                const Text(
+                  "v1.0.0",
+                  style: TextStyle(fontSize: 13, color: Colors.white70),
                 ),
-                onTap: () => onDrawerTap(0),
-              ),
-            ),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Icon(Icons.eco, size: 16, color: Colors.green.shade300),
-                  const SizedBox(width: 8),
-                  const Text(
-                    "Smart Soil Analysis",
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                ],
-              ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.bluetooth,
+                        size: 16,
+                        color: logic.isConnected ? Colors.greenAccent : Colors.white70,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        logic.isConnected ? "Sensor Connected" : "No Sensor",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: logic.isConnected ? Colors.greenAccent : Colors.white70,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
+          ),
 
-  // ============================================
-  // CONNECT CARD
-  // ============================================
+          const SizedBox(height: 12),
+
+          // ============================================
+          // DIRECTIONS
+          // ============================================
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: ListTile(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              tileColor: const Color(0xFFE8F5E9),
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.directions,
+                  color: Color(0xFF2E7D32),
+                  size: 22,
+                ),
+              ),
+              title: const Text(
+                "Directions",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1B5E20),
+                ),
+              ),
+              trailing: const Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Color(0xFF2E7D32),
+              ),
+              onTap: () => onDrawerTap(0),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          // ============================================
+          // ABOUT US
+          // ============================================
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: ListTile(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              tileColor: const Color(0xFFE8F5E9),
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.info_outline,
+                  color: Color(0xFF2E7D32),
+                  size: 22,
+                ),
+              ),
+              title: const Text(
+                "About Us",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1B5E20),
+                ),
+              ),
+              trailing: const Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Color(0xFF2E7D32),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AboutUsScreen()),
+                );
+              },
+            ),
+          ),
+
+          const Spacer(),
+
+          // ============================================
+          // FOOTER
+          // ============================================
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(Icons.eco, size: 16, color: Colors.green.shade300),
+                const SizedBox(width: 8),
+                const Text(
+                  "Smart Soil Analysis",
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+  
   static Widget buildConnectCard(BuildContext context, DashboardLogic logic) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
