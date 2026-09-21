@@ -1,0 +1,20 @@
+{
+  "0": "Agricultural Lime",
+  "1": "Agricultural Lime + No nitrogen fertilizer \u2014 corrective action needed",
+  "2": "Carbonized Rice Hull + Compost",
+  "3": "Carbonized Rice Hull + Compost + No fertilizer \u2014 corrective action needed",
+  "4": "Complete fertilizer (14-14-14)",
+  "5": "MOP (0-0-60)",
+  "6": "MOP (0-0-60) + Agricultural Lime",
+  "7": "No fertilizer \u2014 corrective action needed",
+  "8": "No phosphorus fertilizer \u2014 corrective action needed",
+  "9": "No potassium fertilizer \u2014 corrective action needed",
+  "10": "Solophos (0-18-0)",
+  "11": "Solophos (0-18-0) + Agricultural Lime",
+  "12": "Solophos (0-18-0) + Carbonized Rice Hull + Compost",
+  "13": "Urea (46-0-0)",
+  "14": "Urea (46-0-0) + Agricultural Lime",
+  "15": "Urea (46-0-0) + Carbonized Rice Hull + Compost",
+  "16": "Urea (46-0-0) + Solophos (0-18-0) + Agricultural Lime",
+  "17": "Urea (46-0-0) + Solophos (0-18-0) + MOP (0-0-60) + Agricultural Lime"
+}
