@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dashboard_logic.dart';
 import 'dashboard_helpers.dart';
 import 'about_us_screen.dart';
+import 'report_problem_screen.dart';  
 
 class DashboardWidgets {
   // ============================================
@@ -282,9 +283,52 @@ static Widget buildDrawer(BuildContext context, DashboardLogic logic, Function(i
               },
             ),
           ),
-
-          const Spacer(),
-
+      
+// REPORT PROBLEM
+// ============================================
+Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 12),
+  child: ListTile(
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(14),
+    ),
+    tileColor: const Color(0xFFE8F5E9),
+    leading: Container(
+      padding: const EdgeInsets.all(8),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+      ),
+      child: const Icon(
+        Icons.report_problem_outlined,
+        color: Color(0xFF2E7D32),
+        size: 22,
+      ),
+    ),
+    title: const Text(
+      "Report a Problem",
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: Color(0xFF1B5E20),
+      ),
+    ),
+    trailing: const Icon(
+      Icons.arrow_forward_ios,
+      size: 16,
+      color: Color(0xFF2E7D32),
+    ),
+    onTap: () {
+      Navigator.pop(context);
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ReportProblemScreen()),
+      );
+    },
+  ),
+),
+          
+const Spacer()
           // ============================================
           // FOOTER
           // ============================================
