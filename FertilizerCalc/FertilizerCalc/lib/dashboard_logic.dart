@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'bluetooth/bluetooth_dialog.dart';
@@ -9,7 +10,7 @@ import 'bluetooth/bluetooth_service.dart';
 import 'database/database_helper.dart';
 import 'directions_screen.dart';
 import 'models/sensor_reading.dart';
-import 'services/recommendation_service.dart';
+import 'random_forest_service.dart';
 import 'dashboard_helpers.dart';
 
 class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
@@ -17,11 +18,13 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
   DashboardLogic({required this.context});
 
   late BluetoothService _bluetoothService;
+  final RandomForestService _rfService = RandomForestService();
   SensorReading? _currentReading;
   bool _isConnected = false;
   bool _isLoading = false;
   bool _isScanning = false;
   bool _isListening = false;
+  bool _rfLoaded = false;
   String _errorMessage = '';
   String _deviceName = '';
   Map<String, dynamic>? _recommendationResult;
@@ -34,12 +37,23 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
   String get deviceName => _deviceName;
   SensorReading? get currentReading => _currentReading;
   Map<String, dynamic>? get recommendationResult => _recommendationResult;
+  bool get rfLoaded => _rfLoaded;
 
+  // ============================================
+  // INIT STATE
+  // ============================================
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     _bluetoothService = BluetoothService();
     _checkBluetoothStatus();
     _restoreState();
+    _loadRandomForest(); // 👈 DAGDAG ITO
+  }
+
+  Future<void> _loadRandomForest() async {
+    await _rfService.loadModel();
+    _rfLoaded = _rfService.isLoaded;
+    notifyListeners();
   }
 
   void setBounceController(AnimationController controller, Animation<double> animation) {}
@@ -53,6 +67,9 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  // ============================================
+  // STATE PRESERVATION
+  // ============================================
   Future<void> _restoreState() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -93,6 +110,9 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
     await prefs.remove('dashboard_last_recommendation');
   }
 
+  // ============================================
+  // DRAWER
+  // ============================================
   void onDrawerTap(int index) {
     if (index == 0) {
       Navigator.pop(context);
@@ -100,6 +120,9 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
+  // ============================================
+  // BLUETOOTH
+  // ============================================
   Future<void> _checkBluetoothStatus() async {
     try {
       final enabled = await _bluetoothService.isBluetoothEnabled();
@@ -113,122 +136,109 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> connectToDevice() async {
-  _isLoading = true;
-  _errorMessage = '';
-  notifyListeners();
-
-  try {
-    // ============================================
-    // STEP 1: CHECK KUNG NAKA-ON ANG BLUETOOTH
-    // ============================================
-    final isEnabled = await _bluetoothService.isBluetoothEnabled();
-
-    if (!isEnabled) {
-      // HUWAG NANG MAG-REQUEST NA I-ON — I-SHOW ANG DIALOG NA LANG
-      _errorMessage = 'Bluetooth is disabled. Please enable Bluetooth.';
-      _isLoading = false;
-      notifyListeners();
-      _showBluetoothDisabledDialog();
-      return;
-    }
-
-    // ============================================
-    // STEP 2: REQUEST PERMISSIONS
-    // ============================================
-    if (!await BluetoothPermissions.requestPermissions()) {
-      _errorMessage = 'Bluetooth permissions are required';
-      _isLoading = false;
-      notifyListeners();
-      return;
-    }
-
-    // ============================================
-    // STEP 3: SCAN DEVICES
-    // ============================================
-    _isScanning = true;
+    _isLoading = true;
+    _errorMessage = '';
     notifyListeners();
 
-    final devices = await _bluetoothService.scanDevices();
+    try {
+      final isEnabled = await _bluetoothService.isBluetoothEnabled();
 
-    _isScanning = false;
+      if (!isEnabled) {
+        _errorMessage = 'Bluetooth is disabled. Please enable Bluetooth.';
+        _isLoading = false;
+        notifyListeners();
+        _showBluetoothDisabledDialog();
+        return;
+      }
 
-    if (devices.isEmpty) {
-      _errorMessage = 'No Bluetooth devices found';
-      _isLoading = false;
+      if (!await BluetoothPermissions.requestPermissions()) {
+        _errorMessage = 'Bluetooth permissions are required';
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
+      _isScanning = true;
       notifyListeners();
-      return;
-    }
 
-    // ============================================
-    // STEP 4: I-SHOW ANG DEVICE DIALOG
-    // ============================================
-    final selected = await BluetoothDialog.show(
-      context: context,
-      devices: devices,
-    );
+      final devices = await _bluetoothService.scanDevices();
 
-    if (selected == null) {
+      _isScanning = false;
+
+      if (devices.isEmpty) {
+        _errorMessage = 'No Bluetooth devices found';
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
+      final selected = await BluetoothDialog.show(
+        context: context,
+        devices: devices,
+      );
+
+      if (selected == null) {
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
+      if (await _bluetoothService.connect(selected)) {
+        _isConnected = true;
+        _deviceName = selected.name ?? 'Soil Sensor';
+        _startListeningForData();
+      } else {
+        _errorMessage = 'Failed to connect to ${selected.name}';
+      }
+    } catch (e) {
+      _errorMessage = 'Connection error: $e';
+    } finally {
       _isLoading = false;
+      _isScanning = false;
       notifyListeners();
-      return;
+      await _saveState();
     }
-
-    // ============================================
-    // STEP 5: I-CONNECT SA DEVICE
-    // ============================================
-    if (await _bluetoothService.connect(selected)) {
-      _isConnected = true;
-      _deviceName = selected.name ?? 'Soil Sensor';
-      _startListeningForData();
-    } else {
-      _errorMessage = 'Failed to connect to ${selected.name}';
-    }
-  } catch (e) {
-    _errorMessage = 'Connection error: $e';
-  } finally {
-    _isLoading = false;
-    _isScanning = false;
-    notifyListeners();
-    await _saveState();
   }
-}
 
   void _showBluetoothDisabledDialog() {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (dialogContext) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.bluetooth_disabled, color: Colors.red),
-            SizedBox(width: 10),
-            Text('Bluetooth Required'),
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.bluetooth_disabled, color: Colors.red),
+              SizedBox(width: 10),
+              Text('Bluetooth Required'),
+            ],
+          ),
+          content: const Text(
+            'Bluetooth is not enabled on your device.\n\nPlease turn on Bluetooth first to connect to the soil sensor.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                connectToDevice();
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              child: const Text('Try Again'),
+            ),
           ],
-        ),
-        content: const Text(
-          'Bluetooth is not enabled on your device.\n\nPlease turn on Bluetooth first to connect to the soil sensor.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              connectToDevice();
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            child: const Text('Try Again'),
-          ),
-        ],
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 
+  // ============================================
+  // SENSOR DATA
+  // ============================================
   void _startListeningForData() {
     if (_isListening || _bluetoothService.connection?.input == null) return;
     _isListening = true;
@@ -296,30 +306,65 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
     if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
 
+  // ============================================
+  // GET RECOMMENDATION — GAMIT ANG RANDOM FOREST
+  // ============================================
   Future<void> getRecommendation() async {
     if (_currentReading == null) return;
+
     _isLoading = true;
     notifyListeners();
+
     try {
-      final service = RecommendationService();
-      await service.loadRules();
-      final n = int.tryParse(_currentReading!.nitrogen) ?? 0;
-      final p = int.tryParse(_currentReading!.phosphorus) ?? 0;
-      final k = int.tryParse(_currentReading!.potassium) ?? 0;
+      // ============================================
+      // STEP 1: PREDICT GAMIT ANG RANDOM FOREST
+      // ============================================
+      final n = double.tryParse(_currentReading!.nitrogen) ?? 0;
+      final p = double.tryParse(_currentReading!.phosphorus) ?? 0;
+      final k = double.tryParse(_currentReading!.potassium) ?? 0;
       final ph = double.tryParse(_currentReading!.ph) ?? 0;
-      _recommendationResult = service.getRecommendation(
-        n: n, p: p, k: k, ph: ph,
-        statusN: DashboardHelpers.getStatusN(n), statusP: DashboardHelpers.getStatusP(p),
-        statusK: DashboardHelpers.getStatusK(k), statusPh: DashboardHelpers.getStatusPh(ph),
+
+      final fertilizerType = _rfService.predict(n: n, p: p, k: k, ph: ph);
+      debugPrint('🌲 Random Forest Prediction: $fertilizerType');
+
+      // ============================================
+      // STEP 2: HANAPIN SA fertilizer_rules.json
+      // ============================================
+      final rules = await _loadFertilizerRules();
+      final rule = rules.firstWhere(
+        (r) => r['fertilizer'] == fertilizerType,
+        orElse: () => <String, dynamic>{},
       );
+
+      // ============================================
+      // STEP 3: I-BUO ANG RESULT
+      // ============================================
+      _recommendationResult = {
+        'fertilizer': fertilizerType,
+        'image': rule['image'] ?? '',
+        'google_search': rule['google_search'] ?? '',
+        'alternative': rule['alternative'] ?? 'N/A',
+        'amount': rule['amount'] ?? 'N/A',
+        'application_rate': rule['application_rate'] ?? '',
+        'mode_of_application': rule['mode_of_application'] ?? '',
+        'application_timing': rule['application_timing'] ?? '',
+      };
+
       await _saveState();
       showRecommendationDialog(_recommendationResult!);
     } catch (e) {
       _errorMessage = 'Error: $e';
+      debugPrint('❌ Error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<List<Map<String, dynamic>>> _loadFertilizerRules() async {
+    final jsonString = await rootBundle.loadString('assets/fertilizer_rules.json');
+    final List<dynamic> data = json.decode(jsonString);
+    return data.map((e) => Map<String, dynamic>.from(e)).toList();
   }
 
   void showRecommendationDialog(Map<String, dynamic> result) {
