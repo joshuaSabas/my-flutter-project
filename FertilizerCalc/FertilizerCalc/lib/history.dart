@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'database/database_helper.dart';
 import 'models/sensor_reading.dart';
+import 'history_detail_screen.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({Key? key}) : super(key: key);
@@ -141,150 +142,124 @@ class _HistoryScreenState extends State<HistoryScreen>
             ? timestampText.substring(0, 19)
             : timestampText;
 
-        return Container(
-          margin: const EdgeInsets.only(bottom: 14),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.shade200,
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 45,
-                    height: 45,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFE8F5E9),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.eco, color: Color(0xFF43A047), size: 24),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Recommendation #${item.id ?? index + 1}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1B5E20),
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          safeTimestamp,
-                          style: const TextStyle(fontSize: 11, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red, size: 22),
-                    onPressed: item.id == null ? null : () => _showDeleteDialog(item.id!),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Soil Parameters:',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF333333),
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => HistoryDetailScreen(
+                  reading: item,
+                  onFeedback: _loadHistory,
                 ),
               ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  _buildParamChip('N', item.nitrogen, Colors.green),
-                  _buildParamChip('P', item.phosphorus, Colors.orange),
-                  _buildParamChip('K', item.potassium, Colors.blue),
-                  _buildParamChip('pH', item.ph, Colors.purple),
-                ],
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Recommendation:',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF333333),
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.shade200,
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE8F5E9),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF43A047).withOpacity(0.3)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    if (item.fertilizerType != null && item.fertilizerType!.isNotEmpty)
-                      _buildRecommendationRow(
-                        Icons.eco,
-                        item.fertilizerType!,
-                        const Color(0xFF43A047),
+                    Container(
+                      width: 45,
+                      height: 45,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFE8F5E9),
+                        shape: BoxShape.circle,
                       ),
-                    if (item.alternativeType != null && item.alternativeType!.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      _buildRecommendationRow(
-                        Icons.swap_horiz,
-                        'Alternative: ${item.alternativeType}',
-                        const Color(0xFFE65100),
+                      child: const Icon(Icons.eco, color: Color(0xFF43A047), size: 24),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Recommendation #${item.id ?? index + 1}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1B5E20),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            safeTimestamp,
+                            style: const TextStyle(fontSize: 11, color: Colors.grey),
+                          ),
+                        ],
                       ),
-                    ],
-                    if (item.amount != null && item.amount!.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      _buildRecommendationRow(
-                        Icons.scale,
-                        item.amount!,
-                        const Color(0xFF1565C0),
-                      ),
-                    ],
+                    ),
+                    // FEEDBACK INDICATOR
+                    if (item.feedback == true)
+                      const Icon(Icons.thumb_up, color: Colors.green, size: 20)
+                    else if (item.feedback == false)
+                      const Icon(Icons.thumb_down, color: Colors.red, size: 20),
+                    const SizedBox(width: 4),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.red, size: 22),
+                      onPressed: item.id == null ? null : () => _showDeleteDialog(item.id!),
+                    ),
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                const Text(
+                  'Soil Parameters:',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF333333),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    _buildParamChip('N', item.nitrogen, Colors.green),
+                    _buildParamChip('P', item.phosphorus, Colors.orange),
+                    _buildParamChip('K', item.potassium, Colors.blue),
+                    _buildParamChip('pH', item.ph, Colors.purple),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Tap to view details',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade500,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      size: 12,
+                      color: Colors.grey.shade500,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },
-    );
-  }
-
-  Widget _buildRecommendationRow(IconData icon, String text, Color color) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: color),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 13,
-              color: color,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
     );
   }
 
