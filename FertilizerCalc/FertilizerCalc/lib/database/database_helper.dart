@@ -9,7 +9,6 @@ class DatabaseHelper {
 
   static const String _key = 'recommendations';
 
-  // 👇 EXISTING - INSERT RECOMMENDATION
   Future<void> insertRecommendation(SensorReading reading) async {
     final prefs = await SharedPreferences.getInstance();
     List<String>? existing = prefs.getStringList(_key);
@@ -29,13 +28,17 @@ class DatabaseHelper {
       'recommendedSacks': reading.recommendedSacks ?? 0,
       'amount': reading.amount ?? '',
       'npkAnalysis': reading.npkAnalysis ?? '',
+      // BAGONG FIELDS
+      'googleSearchUrl': reading.googleSearchUrl ?? '',
+      'applicationRate': reading.applicationRate ?? '',
+      'modeOfApplication': reading.modeOfApplication ?? '',
+      'applicationTiming': reading.applicationTiming ?? '',
     };
 
     existing.add(jsonEncode(data));
     await prefs.setStringList(_key, existing);
   }
 
-  // 👇 EXISTING - GET ALL RECOMMENDATIONS
   Future<List<SensorReading>> getAllRecommendations() async {
     final prefs = await SharedPreferences.getInstance();
     List<String>? existing = prefs.getStringList(_key);
@@ -59,6 +62,11 @@ class DatabaseHelper {
           recommendedSacks: data['recommendedSacks'] ?? 0,
           amount: data['amount'] ?? '',
           npkAnalysis: data['npkAnalysis'] ?? '',
+          // BAGONG FIELDS
+          googleSearchUrl: data['googleSearchUrl'] ?? '',
+          applicationRate: data['applicationRate'] ?? '',
+          modeOfApplication: data['modeOfApplication'] ?? '',
+          applicationTiming: data['applicationTiming'] ?? '',
         ));
       } catch (e) {}
     }
@@ -66,7 +74,6 @@ class DatabaseHelper {
     return readings;
   }
 
-  // 👇 EXISTING - UPDATE FEEDBACK
   Future<void> updateFeedback(int id, bool isThumbsUp) async {
     final prefs = await SharedPreferences.getInstance();
     List<String>? existing = prefs.getStringList(_key);
@@ -83,7 +90,6 @@ class DatabaseHelper {
     await prefs.setStringList(_key, updated);
   }
 
-  // 👇 EXISTING - DELETE SPECIFIC RECOMMENDATION
   Future<void> deleteRecommendation(int id) async {
     final prefs = await SharedPreferences.getInstance();
     List<String>? existing = prefs.getStringList(_key);
@@ -96,37 +102,28 @@ class DatabaseHelper {
     await prefs.setStringList(_key, existing);
   }
 
-  // 👇 EXISTING - CLEAR ALL HISTORY
   Future<void> clearAllHistory() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_key);
   }
 
-  // ============================================
-  // 👇 MGA BAGONG DAGDAG NA FUNCTIONS
-  // ============================================
-
-  // 👇 1. CHECK IF MAY EXISTING DATA
   Future<bool> hasExistingData() async {
     final prefs = await SharedPreferences.getInstance();
     List<String>? existing = prefs.getStringList(_key);
     return existing != null && existing.isNotEmpty;
   }
 
-  // 👇 2. GET COUNT NG DATA
   Future<int> getDataCount() async {
     final prefs = await SharedPreferences.getInstance();
     List<String>? existing = prefs.getStringList(_key);
     return existing?.length ?? 0;
   }
 
-  // 👇 3. DELETE ALL DATA (PARA SA USER NA GUSTO MAG-DELETE)
   Future<void> deleteAllData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_key);
   }
 
-  // 👇 4. GET SPECIFIC RECOMMENDATION BY ID
   Future<SensorReading?> getRecommendationById(int id) async {
     final prefs = await SharedPreferences.getInstance();
     List<String>? existing = prefs.getStringList(_key);
@@ -149,6 +146,10 @@ class DatabaseHelper {
           recommendedSacks: data['recommendedSacks'] ?? 0,
           amount: data['amount'] ?? '',
           npkAnalysis: data['npkAnalysis'] ?? '',
+          googleSearchUrl: data['googleSearchUrl'] ?? '',
+          applicationRate: data['applicationRate'] ?? '',
+          modeOfApplication: data['modeOfApplication'] ?? '',
+          applicationTiming: data['applicationTiming'] ?? '',
         );
       }
     }
