@@ -430,32 +430,28 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
       barrierDismissible: false,
       builder: (dialogContext) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
           insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           child: Container(
-            constraints: const BoxConstraints(maxHeight: 700),
+            constraints: const BoxConstraints(maxHeight: 720),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(28),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 // HEADER
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
                   child: Row(
                     children: [
                       Container(
-                        width: 55,
-                        height: 55,
+                        width: 52,
+                        height: 52,
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          shape: BoxShape.circle,
+                          color: const Color(0xFF2E7D32),
+                          borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.green.withOpacity(0.3),
@@ -469,23 +465,24 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                       const SizedBox(width: 14),
                       const Expanded(
                         child: Text(
-                          "Fertilizer Recommendation",
+                          "Fertilizer\nRecommendation",
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF1B5E20),
+                            height: 1.2,
                           ),
                         ),
                       ),
                       IconButton(
                         onPressed: () => Navigator.pop(dialogContext),
                         icon: Container(
-                          padding: const EdgeInsets.all(6),
+                          padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: Colors.grey.shade200,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.close, size: 18, color: Colors.black54),
+                          child: const Icon(Icons.close, size: 20, color: Colors.black54),
                         ),
                       ),
                     ],
@@ -499,638 +496,311 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // RECOMMENDED FERTILIZER
-                        const Text(
-                          "RECOMMENDED FERTILIZER",
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2E7D32),
-                            letterSpacing: 0.8,
-                          ),
+                        _buildRecommendationCard(
+                          label: "RECOMMENDED FERTILIZER",
+                          labelColor: const Color(0xFF2E7D32),
+                          bgColor: const Color(0xFFE8F5E9),
+                          borderColor: const Color(0xFFA5D6A7),
+                          iconBgColor: const Color(0xFF2E7D32),
+                          icon: Icons.eco,
+                          value: fertilizer,
+                          onTap: googleSearch.isNotEmpty
+                              ? () => launchGoogleSearch(googleSearch)
+                              : null,
                         ),
-                        const SizedBox(height: 8),
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            if (googleSearch.isNotEmpty) {
-                              launchGoogleSearch(googleSearch);
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE8F5E9),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFF43A047), width: 1.5),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 65,
-                                  height: 65,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: imageUrl.isNotEmpty
-                                      ? ClipRRect(
-                                          borderRadius: BorderRadius.circular(12),
-                                          child: Image.network(
-                                            imageUrl,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (context, error, stackTrace) {
-                                              return const Icon(Icons.shopping_bag, size: 35, color: Color(0xFF43A047));
-                                            },
-                                          ),
-                                        )
-                                      : const Icon(Icons.shopping_bag, size: 35, color: Color(0xFF43A047)),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        fertilizer,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF1B5E20),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.search, size: 14, color: Color(0xFF43A047)),
-                                          const SizedBox(width: 4),
-                                          const Text(
-                                            "Click Here to see more",
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
-                                              color: Color(0xFF43A047),
-                                              decoration: TextDecoration.underline,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const Icon(Icons.arrow_forward_ios, size: 14, color: Color(0xFF43A047)),
-                              ],
-                            ),
-                          ),
+                        const SizedBox(height: 12),
+                        _buildRecommendationCard(
+                          label: "ALTERNATIVE FERTILIZER",
+                          labelColor: const Color(0xFFE65100),
+                          bgColor: const Color(0xFFFFF3E0),
+                          borderColor: const Color(0xFFFFCC80),
+                          iconBgColor: const Color(0xFFFB8C00),
+                          icon: Icons.shopping_bag,
+                          value: alternative,
+                          onTap: (alternative != 'N/A' && alternative.isNotEmpty)
+                              ? () {
+                                  final altSearch =
+                                      'https://www.google.com/search?q=${Uri.encodeComponent(alternative + " fertilizer")}&tbm=isch';
+                                  launchGoogleSearch(altSearch);
+                                }
+                              : null,
                         ),
-
+                        const SizedBox(height: 12),
+                        _buildRecommendationCard(
+                          label: "RECOMMENDED AMOUNT",
+                          labelColor: const Color(0xFF2E7D32),
+                          bgColor: const Color(0xFFE8F5E9),
+                          borderColor: const Color(0xFFA5D6A7),
+                          iconBgColor: const Color(0xFF2E7D32),
+                          icon: Icons.scale,
+                          value: amount,
+                          showArrow: false,
+                        ),
                         const SizedBox(height: 16),
-
-                        // ALTERNATIVE FERTILIZER
-                        const Text(
-                          "ALTERNATIVE FERTILIZER",
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFFE65100),
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            if (alternative != 'N/A' && alternative.isNotEmpty) {
-                              final altSearch =
-                                  'https://www.google.com/search?q=${Uri.encodeComponent(alternative + " fertilizer")}&tbm=isch';
-                              launchGoogleSearch(altSearch);
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFF3E0),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFFFB8C00), width: 1.5),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 65,
-                                  height: 65,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Icon(Icons.shopping_bag, size: 35, color: Color(0xFFFB8C00)),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        alternative,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFFE65100),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.search, size: 14, color: Color(0xFFFB8C00)),
-                                          const SizedBox(width: 4),
-                                          const Text(
-                                            "Click Here to see more",
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
-                                              color: Color(0xFFFB8C00),
-                                              decoration: TextDecoration.underline,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const Icon(Icons.arrow_forward_ios, size: 14, color: Color(0xFFFB8C00)),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // RECOMMENDED AMOUNT
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE8F5E9),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                width: 50,
-                                height: 50,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF2E7D32),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.scale, color: Colors.white, size: 24),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      "RECOMMENDED AMOUNT",
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF2E7D32),
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      amount,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1B5E20),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // APPLICATION DETAILS — VERTICAL & CENTERED
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: const Color(0xFFF5F7FA),
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(20),
                           ),
-void showRecommendationDialog(Map<String, dynamic> result) {
-  final fertilizer = result['fertilizer'] ?? 'Unknown';
-  final imageUrl = result['image'] ?? '';
-  final googleSearch = result['google_search'] ?? '';
-  final alternative = result['alternative'] ?? 'N/A';
-  final amount = result['amount'] ?? 'N/A';
-  final applicationRate = result['application_rate'] ?? '';
-  final modeOfApplication = result['mode_of_application'] ?? '';
-  final applicationTiming = result['application_timing'] ?? '';
-
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (dialogContext) {
-      return Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        child: Container(
-          constraints: const BoxConstraints(maxHeight: 720),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // HEADER
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF2E7D32),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.green.withOpacity(0.3),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(Icons.eco, color: Colors.white, size: 28),
-                    ),
-                    const SizedBox(width: 14),
-                    const Expanded(
-                      child: Text(
-                        "Fertilizer\nRecommendation",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1B5E20),
-                          height: 1.2,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      icon: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.close, size: 20, color: Colors.black54),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // SCROLLABLE CONTENT
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // RECOMMENDED FERTILIZER
-                      _buildRecommendationCard(
-                        label: "RECOMMENDED FERTILIZER",
-                        labelColor: const Color(0xFF2E7D32),
-                        bgColor: const Color(0xFFE8F5E9),
-                        borderColor: const Color(0xFFA5D6A7),
-                        iconBgColor: const Color(0xFF2E7D32),
-                        icon: Icons.eco,
-                        value: fertilizer,
-                        onTap: googleSearch.isNotEmpty
-                            ? () => launchGoogleSearch(googleSearch)
-                            : null,
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // ALTERNATIVE FERTILIZER
-                      _buildRecommendationCard(
-                        label: "ALTERNATIVE FERTILIZER",
-                        labelColor: const Color(0xFFE65100),
-                        bgColor: const Color(0xFFFFF3E0),
-                        borderColor: const Color(0xFFFFCC80),
-                        iconBgColor: const Color(0xFFFB8C00),
-                        icon: Icons.shopping_bag,
-                        value: alternative,
-                        onTap: (alternative != 'N/A' && alternative.isNotEmpty)
-                            ? () {
-                                final altSearch =
-                                    'https://www.google.com/search?q=${Uri.encodeComponent(alternative + " fertilizer")}&tbm=isch';
-                                launchGoogleSearch(altSearch);
-                              }
-                            : null,
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // RECOMMENDED AMOUNT
-                      _buildRecommendationCard(
-                        label: "RECOMMENDED AMOUNT",
-                        labelColor: const Color(0xFF2E7D32),
-                        bgColor: const Color(0xFFE8F5E9),
-                        borderColor: const Color(0xFFA5D6A7),
-                        iconBgColor: const Color(0xFF2E7D32),
-                        icon: Icons.scale,
-                        value: amount,
-                        showArrow: false,
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // APPLICATION DETAILS
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF5F7FA),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              "APPLICATION DETAILS",
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF555555),
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-
-                            // APPLICATION RATE
-                            _buildAppDetailRow(
-                              icon: Icons.scale,
-                              iconColor: const Color(0xFF2E7D32),
-                              iconBg: const Color(0xFFE8F5E9),
-                              label: "APPLICATION RATE",
-                              labelColor: const Color(0xFF2E7D32),
-                              value: applicationRate.isNotEmpty ? applicationRate : 'N/A',
-                            ),
-                            Divider(height: 24, color: Colors.grey.shade300),
-
-                            // MODE OF APPLICATION
-                            _buildAppDetailRow(
-                              icon: Icons.water_drop,
-                              iconColor: const Color(0xFF1565C0),
-                              iconBg: const Color(0xFFE3F2FD),
-                              label: "MODE OF APPLICATION",
-                              labelColor: const Color(0xFF1565C0),
-                              value: modeOfApplication.isNotEmpty ? modeOfApplication : 'N/A',
-                            ),
-                            Divider(height: 24, color: Colors.grey.shade300),
-
-                            // APPLICATION TIMING
-                            _buildAppDetailRow(
-                              icon: Icons.calendar_month,
-                              iconColor: const Color(0xFF6A1B9A),
-                              iconBg: const Color(0xFFF3E5F5),
-                              label: "APPLICATION TIMING",
-                              labelColor: const Color(0xFF6A1B9A),
-                              value: applicationTiming.isNotEmpty ? applicationTiming : 'N/A',
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 20),
-                    ],
-                  ),
-                ),
-              ),
-
-              // BOTTOM BUTTONS
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                child: Row(
-                  children: [
-                    // SAVE IN HISTORY BUTTON
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () async {
-                          if (_currentReading == null || _recommendationResult == null) {
-                            return;
-                          }
-                          try {
-                            final reading = SensorReading(
-                              nitrogen: _currentReading!.nitrogen,
-                              phosphorus: _currentReading!.phosphorus,
-                              potassium: _currentReading!.potassium,
-                              ph: _currentReading!.ph,
-                              timestamp: DateTime.now(),
-                              fertilizerType: fertilizer,
-                              fertilizerImageUrl: imageUrl,
-                              alternativeType: alternative,
-                              recommendedSacks: 0,
-                              amount: amount,
-                              npkAnalysis: '',
-                              googleSearchUrl: googleSearch,
-                              applicationRate: applicationRate,
-                              modeOfApplication: modeOfApplication,
-                              applicationTiming: applicationTiming,
-                            );
-                            await DatabaseHelper().insertRecommendation(reading);
-
-                            onHistorySaved?.call();
-
-                            if (dialogContext.mounted) {
-                              ScaffoldMessenger.of(dialogContext).showSnackBar(
-                                const SnackBar(
-                                  content: Text('✅ Saved to history!'),
-                                  backgroundColor: Colors.green,
-                                  duration: Duration(seconds: 2),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "APPLICATION DETAILS",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF555555),
+                                  letterSpacing: 0.8,
                                 ),
-                              );
-                            }
-                          } catch (e) {
-                            debugPrint('Error saving to history: $e');
-                          }
-                        },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF2E7D32),
-                          side: const BorderSide(color: Color(0xFF2E7D32), width: 1.5),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                              ),
+                              const SizedBox(height: 14),
+                              _buildAppDetailRow(
+                                icon: Icons.scale,
+                                iconColor: const Color(0xFF2E7D32),
+                                iconBg: const Color(0xFFE8F5E9),
+                                label: "APPLICATION RATE",
+                                labelColor: const Color(0xFF2E7D32),
+                                value: applicationRate.isNotEmpty ? applicationRate : 'N/A',
+                              ),
+                              Divider(height: 24, color: Colors.grey.shade300),
+                              _buildAppDetailRow(
+                                icon: Icons.water_drop,
+                                iconColor: const Color(0xFF1565C0),
+                                iconBg: const Color(0xFFE3F2FD),
+                                label: "MODE OF APPLICATION",
+                                labelColor: const Color(0xFF1565C0),
+                                value: modeOfApplication.isNotEmpty ? modeOfApplication : 'N/A',
+                              ),
+                              Divider(height: 24, color: Colors.grey.shade300),
+                              _buildAppDetailRow(
+                                icon: Icons.calendar_month,
+                                iconColor: const Color(0xFF6A1B9A),
+                                iconBg: const Color(0xFFF3E5F5),
+                                label: "APPLICATION TIMING",
+                                labelColor: const Color(0xFF6A1B9A),
+                                value: applicationTiming.isNotEmpty ? applicationTiming : 'N/A',
+                              ),
+                            ],
                           ),
                         ),
-                        icon: const Icon(Icons.bookmark_border, size: 20),
-                        label: const Text(
-                          "Save in History",
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                        ),
-                      ),
+                        const SizedBox(height: 20),
+                      ],
                     ),
-
-                    const SizedBox(width: 12),
-
-                    // GOT IT BUTTON
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => Navigator.pop(dialogContext),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF43A047),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          elevation: 4,
-                          shadowColor: Colors.green.withOpacity(0.4),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        icon: const Icon(Icons.check, size: 20),
-                        label: const Text(
-                          "Got it",
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-  );
-}
-
-// HELPER: Recommendation card
-Widget _buildRecommendationCard({
-  required String label,
-  required Color labelColor,
-  required Color bgColor,
-  required Color borderColor,
-  required Color iconBgColor,
-  required IconData icon,
-  required String value,
-  VoidCallback? onTap,
-  bool showArrow = true,
-}) {
-  return GestureDetector(
-    behavior: HitTestBehavior.opaque,
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: borderColor, width: 1),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: iconBgColor,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: Colors.white, size: 26),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: labelColor,
-                    letterSpacing: 0.6,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1B5E20),
-                    height: 1.3,
+
+                // BOTTOM BUTTONS
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            if (_currentReading == null || _recommendationResult == null) {
+                              return;
+                            }
+                            try {
+                              final reading = SensorReading(
+                                nitrogen: _currentReading!.nitrogen,
+                                phosphorus: _currentReading!.phosphorus,
+                                potassium: _currentReading!.potassium,
+                                ph: _currentReading!.ph,
+                                timestamp: DateTime.now(),
+                                fertilizerType: fertilizer,
+                                fertilizerImageUrl: imageUrl,
+                                alternativeType: alternative,
+                                recommendedSacks: 0,
+                                amount: amount,
+                                npkAnalysis: '',
+                                googleSearchUrl: googleSearch,
+                                applicationRate: applicationRate,
+                                modeOfApplication: modeOfApplication,
+                                applicationTiming: applicationTiming,
+                              );
+                              await DatabaseHelper().insertRecommendation(reading);
+                              onHistorySaved?.call();
+                              if (dialogContext.mounted) {
+                                ScaffoldMessenger.of(dialogContext).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('✅ Saved to history!'),
+                                    backgroundColor: Colors.green,
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              debugPrint('Error saving to history: $e');
+                            }
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF2E7D32),
+                            side: const BorderSide(color: Color(0xFF2E7D32), width: 1.5),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          icon: const Icon(Icons.bookmark_border, size: 20),
+                          label: const Text(
+                            "Save in History",
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => Navigator.pop(dialogContext),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF43A047),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            elevation: 4,
+                            shadowColor: Colors.green.withOpacity(0.4),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          icon: const Icon(Icons.check, size: 20),
+                          label: const Text(
+                            "Got it",
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-          if (showArrow && onTap != null)
-            Icon(Icons.chevron_right, color: labelColor, size: 24),
-        ],
-      ),
-    ),
-  );
-}
+        );
+      },
+    );
+  }
 
-// HELPER: App detail row
-Widget _buildAppDetailRow({
-  required IconData icon,
-  required Color iconColor,
-  required Color iconBg,
-  required String label,
-  required Color labelColor,
-  required String value,
-}) {
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Container(
-        width: 44,
-        height: 44,
+  // HELPER: Recommendation card
+  Widget _buildRecommendationCard({
+    required String label,
+    required Color labelColor,
+    required Color bgColor,
+    required Color borderColor,
+    required Color iconBgColor,
+    required IconData icon,
+    required String value,
+    VoidCallback? onTap,
+    bool showArrow = true,
+  }) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: iconBg,
-          borderRadius: BorderRadius.circular(12),
+          color: bgColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: borderColor, width: 1),
         ),
-        child: Icon(icon, color: iconColor, size: 22),
-      ),
-      const SizedBox(width: 12),
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: labelColor,
-                letterSpacing: 0.6,
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: iconBgColor,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: Colors.white, size: 26),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: labelColor,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1B5E20),
+                      height: 1.3,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF333333),
-                height: 1.4,
-              ),
-            ),
+            if (showArrow && onTap != null)
+              Icon(Icons.chevron_right, color: labelColor, size: 24),
           ],
         ),
       ),
-    ],
-  );
-}
+    );
+  }
+
+  // HELPER: App detail row
+  Widget _buildAppDetailRow({
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBg,
+    required String label,
+    required Color labelColor,
+    required String value,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: iconBg,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: iconColor, size: 22),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: labelColor,
+                  letterSpacing: 0.6,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF333333),
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
   void showMoistureReminderDialog() {
     showDialog<void>(
