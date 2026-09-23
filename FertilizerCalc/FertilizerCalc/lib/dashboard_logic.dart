@@ -264,66 +264,70 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   SensorReading? _parseSensorData(List<int> data) {
-  final message = String.fromCharCodes(data).trim();
-  if (message.isEmpty || message.contains('NO_DATA')) return null;
+    final message = String.fromCharCodes(data).trim();
+    if (message.isEmpty || message.contains('NO_DATA')) return null;
 
-  var n = '--', p = '--', k = '--', ph = '--';
+    var n = '--', p = '--', k = '--', ph = '--';
 
-  if (message.contains(':')) {
-    for (final raw in message.split(',')) {
-      final part = raw.trim();
-      if (part.startsWith('N:')) n = part.substring(2).trim();
-      if (part.startsWith('P:')) p = part.substring(2).trim();
-      if (part.startsWith('K:')) k = part.substring(2).trim();
-      if (part.toLowerCase().startsWith('ph:')) ph = part.substring(3).trim();
+    if (message.contains(':')) {
+      for (final raw in message.split(',')) {
+        final part = raw.trim();
+        if (part.startsWith('N:')) n = part.substring(2).trim();
+        if (part.startsWith('P:')) p = part.substring(2).trim();
+        if (part.startsWith('K:')) k = part.substring(2).trim();
+        if (part.toLowerCase().startsWith('ph:')) ph = part.substring(3).trim();
+      }
+    } else {
+      final parts = message.split(',');
+      if (parts.length < 4) return null;
+      n = parts[0].trim();
+      p = parts[1].trim();
+      k = parts[2].trim();
+      ph = parts[3].trim();
     }
-  } else {
-    final parts = message.split(',');
-    if (parts.length < 4) return null;
-    n = parts[0].trim();
-    p = parts[1].trim();
-    k = parts[2].trim();
-    ph = parts[3].trim();
-  }
 
-  // ============================================
-  // VALIDATION — DAPAT NASA RANGE
-  // ============================================
-  final nVal = double.tryParse(n) ?? -1;
-  final pVal = double.tryParse(p) ?? -1;
-  final kVal = double.tryParse(k) ?? -1;
-  final phVal = double.tryParse(ph) ?? -1;
+    // ============================================
+    // VALIDATION — DAPAT NASA RANGE
+    // ============================================
+    final nVal = double.tryParse(n) ?? -1;
+    final pVal = double.tryParse(p) ?? -1;
+    final kVal = double.tryParse(k) ?? -1;
+    final phVal = double.tryParse(ph) ?? -1;
 
-  // NPK: 0-2000 mg/kg lang
-  if (nVal < 0 || nVal > 2000) {
-    debugPrint('❌ Invalid N: $n');
-    return null;
-  }
-  if (pVal < 0 || pVal > 2000) {
-    debugPrint('❌ Invalid P: $p');
-    return null;
-  }
-  if (kVal < 0 || kVal > 2000) {
-    debugPrint('❌ Invalid K: $k');
-    return null;
-  }
-  // pH: 0-14 lang
-  if (phVal < 0 || phVal > 14) {
-    debugPrint('❌ Invalid pH: $ph');
-    return null;
-  }
+    // NPK: 0-2000 mg/kg lang
+    if (nVal < 0 || nVal > 2000) {
+      debugPrint('❌ Invalid N: $n');
+      return null;
+    }
+    if (pVal < 0 || pVal > 2000) {
+      debugPrint('❌ Invalid P: $p');
+      return null;
+    }
+    if (kVal < 0 || kVal > 2000) {
+      debugPrint('❌ Invalid K: $k');
+      return null;
+    }
+    // pH: 0-14 lang
+    if (phVal < 0 || phVal > 14) {
+      debugPrint('❌ Invalid pH: $ph');
+      return null;
+    }
 
-  return SensorReading(
-    nitrogen: n,
-    phosphorus: p,
-    potassium: k,
-    ph: ph,
-    timestamp: DateTime.now(),
-  );
-}
+    return SensorReading(
+      nitrogen: n,
+      phosphorus: p,
+      potassium: k,
+      ph: ph,
+      timestamp: DateTime.now(),
+    );
+  }
 
   Future<void> _saveToHistory(SensorReading reading) async {
-    try { await DatabaseHelper().insertRecommendation(reading); } catch (e) { debugPrint('Error saving history: $e'); }
+    try {
+      await DatabaseHelper().insertRecommendation(reading);
+    } catch (e) {
+      debugPrint('Error saving history: $e');
+    }
   }
 
   Future<void> disconnect() async {
@@ -406,7 +410,9 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
       };
 
       await _saveState();
-      showRecommendationDialog(_recommendationResult!);
+      if (context.mounted) {
+        showRecommendationDialog(_recommendationResult!);
+      }
     } catch (e) {
       _errorMessage = 'Error: $e';
       debugPrint('❌ Error: $e');
@@ -725,85 +731,145 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
 
                         const SizedBox(height: 16),
 
-                        // APPLICATION DETAILS
+                        // APPLICATION DETAILS — VERTICAL & CENTERED
                         Container(
-                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: const Color(0xFFF5F7FA),
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: Row(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Expanded(
-                                child: Column(
-                                  children: [
-                                    const Icon(Icons.speed, color: Color(0xFF2E7D32), size: 30),
-                                    const SizedBox(height: 8),
-                                    const Text(
-                                      "Application Rate",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(fontSize: 11, color: Color(0xFF666666)),
+                              // APPLICATION RATE
+                              Column(
+                                children: [
+                                  Container(
+                                    width: 50,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF2E7D32).withOpacity(0.12),
+                                      shape: BoxShape.circle,
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      applicationRate.isNotEmpty ? applicationRate : 'N/A',
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1B5E20),
-                                      ),
+                                    child: const Icon(
+                                      Icons.speed,
+                                      color: Color(0xFF2E7D32),
+                                      size: 26,
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    "Application Rate",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF2E7D32),
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    applicationRate.isNotEmpty ? applicationRate : 'N/A',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF1B5E20),
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Container(height: 80, width: 1, color: Colors.grey.shade300),
-                              Expanded(
-                                child: Column(
-                                  children: [
-                                    const Icon(Icons.water_drop, color: Color(0xFF1565C0), size: 30),
-                                    const SizedBox(height: 8),
-                                    const Text(
-                                      "Mode of Application",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(fontSize: 11, color: Color(0xFF666666)),
+
+                              const SizedBox(height: 16),
+                              Divider(height: 1, color: Colors.grey.shade300),
+                              const SizedBox(height: 16),
+
+                              // MODE OF APPLICATION
+                              Column(
+                                children: [
+                                  Container(
+                                    width: 50,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF1565C0).withOpacity(0.12),
+                                      shape: BoxShape.circle,
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      modeOfApplication.isNotEmpty ? modeOfApplication : 'N/A',
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1B5E20),
-                                      ),
+                                    child: const Icon(
+                                      Icons.water_drop,
+                                      color: Color(0xFF1565C0),
+                                      size: 26,
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    "Mode of Application",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1565C0),
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    modeOfApplication.isNotEmpty ? modeOfApplication : 'N/A',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF1B5E20),
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Container(height: 80, width: 1, color: Colors.grey.shade300),
-                              Expanded(
-                                child: Column(
-                                  children: [
-                                    const Icon(Icons.calendar_month, color: Color(0xFF6A1B9A), size: 30),
-                                    const SizedBox(height: 8),
-                                    const Text(
-                                      "Application Timing",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(fontSize: 11, color: Color(0xFF666666)),
+
+                              const SizedBox(height: 16),
+                              Divider(height: 1, color: Colors.grey.shade300),
+                              const SizedBox(height: 16),
+
+                              // APPLICATION TIMING
+                              Column(
+                                children: [
+                                  Container(
+                                    width: 50,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF6A1B9A).withOpacity(0.12),
+                                      shape: BoxShape.circle,
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      applicationTiming.isNotEmpty ? applicationTiming : 'N/A',
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1B5E20),
-                                      ),
+                                    child: const Icon(
+                                      Icons.calendar_month,
+                                      color: Color(0xFF6A1B9A),
+                                      size: 26,
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    "Application Timing",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF6A1B9A),
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    applicationTiming.isNotEmpty ? applicationTiming : 'N/A',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF1B5E20),
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -815,95 +881,115 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                   ),
                 ),
 
-// BOTTOM BUTTONS
-Padding(
-  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-  child: Row(
-    children: [
-      // SAVE IN HISTORY BUTTON
-      Expanded(
-        child: OutlinedButton.icon(
-          onPressed: () async {
-            if (_currentReading != null && _recommendationResult != null) {
-              try {
-                final reading = SensorReading(
-                  nitrogen: _currentReading!.nitrogen,
-                  phosphorus: _currentReading!.phosphorus,
-                  potassium: _currentReading!.potassium,
-                  ph: _currentReading!.ph,
-                  timestamp: DateTime.now(),
-                  fertilizerType: fertilizer,
-                  fertilizerImageUrl: imageUrl,
-                  alternativeType: alternative,
-                  recommendedSacks: 0,
-                  amount: amount,
-                  npkAnalysis: '',
-                );
-                await DatabaseHelper().insertRecommendation(reading);
+                // BOTTOM BUTTONS
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  child: Row(
+                    children: [
+                      // SAVE IN HISTORY BUTTON
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            if (_currentReading != null && _recommendationResult != null) {
+                              try {
+                                final reading = SensorReading(
+                                  nitrogen: _currentReading!.nitrogen,
+                                  phosphorus: _currentReading!.phosphorus,
+                                  potassium: _currentReading!.potassium,
+                                  ph: _currentReading!.ph,
+                                  timestamp: DateTime.now(),
+                                  fertilizerType: fertilizer,
+                                  fertilizerImageUrl: imageUrl,
+                                  alternativeType: alternative,
+                                  recommendedSacks: 0,
+                                  amount: amount,
+                                  npkAnalysis: '',
+                                );
+                                await DatabaseHelper().insertRecommendation(reading);
 
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('✅ Saved to history!'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
-              } catch (e) {
-                debugPrint('Error saving to history: $e');
-              }
-            }
-          },
-          style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFF2E7D32),
-            side: const BorderSide(color: Color(0xFF2E7D32), width: 1.5),
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
-            ),
-          ),
-          icon: const Icon(Icons.bookmark_border, size: 20),
-          label: const Text(
-            "Save in History",
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-          ),
-        ),
-      ),
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('✅ Saved to history!'),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                debugPrint('Error saving to history: $e');
+                              }
+                            }
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF2E7D32),
+                            side: const BorderSide(color: Color(0xFF2E7D32), width: 1.5),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          icon: const Icon(Icons.bookmark_border, size: 20),
+                          label: const Text(
+                            "Save in History",
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
 
-      const SizedBox(width: 12),
+                      const SizedBox(width: 12),
 
-      // GOT IT BUTTON
-      Expanded(
-        child: ElevatedButton.icon(
-          onPressed: () => Navigator.pop(dialogContext),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF43A047),
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            elevation: 4,
-            shadowColor: Colors.green.withOpacity(0.4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
-            ),
-          ),
-          icon: const Icon(Icons.check, size: 20),
-          label: const Text(
-            "Got it",
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-          ),
-        ),
-      ),
-    ],
-  ),
-),
+                      // GOT IT BUTTON
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => Navigator.pop(dialogContext),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF43A047),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            elevation: 4,
+                            shadowColor: Colors.green.withOpacity(0.4),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          icon: const Icon(Icons.check, size: 20),
+                          label: const Text(
+                            "Got it",
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ], // close Column children
+            ),   // close Column
+          ),     // close Container
+        );       // close Dialog
+      },         // close builder
+    );           // close showDialog
+  }              // close showRecommendationDialog
 
   void showMoistureReminderDialog() {
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Row(children: [Icon(Icons.water_drop, color: Colors.blue), SizedBox(width: 10), Text('Moisture Reminder')]),
-        content: const Text('Keep the soil moist, but not waterlogged.\n\nWater early morning or late afternoon.'),
-        actions: [TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('OK'))],
+        title: const Row(
+          children: [
+            Icon(Icons.water_drop, color: Colors.blue),
+            SizedBox(width: 10),
+            Text('Moisture Reminder'),
+          ],
+        ),
+        content: const Text(
+          'Keep the soil moist, but not waterlogged.\n\nWater early morning or late afternoon.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }
