@@ -47,7 +47,7 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
     _bluetoothService = BluetoothService();
     _checkBluetoothStatus();
     _restoreState();
-    _loadRandomForest(); // 👈 DAGDAG ITO
+    _loadRandomForest();
   }
 
   Future<void> _loadRandomForest() async {
@@ -307,7 +307,7 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   // ============================================
-  // GET RECOMMENDATION — GAMIT ANG RANDOM FOREST
+  // GET RECOMMENDATION — RANDOM FOREST
   // ============================================
   Future<void> getRecommendation() async {
     if (_currentReading == null) return;
@@ -316,31 +316,53 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
 
     try {
-      // ============================================
-      // STEP 1: PREDICT GAMIT ANG RANDOM FOREST
-      // ============================================
       final n = double.tryParse(_currentReading!.nitrogen) ?? 0;
       final p = double.tryParse(_currentReading!.phosphorus) ?? 0;
       final k = double.tryParse(_currentReading!.potassium) ?? 0;
       final ph = double.tryParse(_currentReading!.ph) ?? 0;
 
       final fertilizerType = _rfService.predict(n: n, p: p, k: k, ph: ph);
-      debugPrint('🌲 Random Forest Prediction: $fertilizerType');
+      debugPrint('🌲 Random Forest Prediction: "$fertilizerType"');
 
-      // ============================================
-      // STEP 2: HANAPIN SA fertilizer_rules.json
-      // ============================================
       final rules = await _loadFertilizerRules();
-      final rule = rules.firstWhere(
-        (r) => r['fertilizer'] == fertilizerType,
-        orElse: () => <String, dynamic>{},
-      );
 
       // ============================================
-      // STEP 3: I-BUO ANG RESULT
+      // CASE-INSENSITIVE AT TRIMMED NA PAGHAHANAP
       // ============================================
+      final normalizedPrediction = fertilizerType.trim().toLowerCase();
+
+      Map<String, dynamic>? rule;
+      try {
+        rule = rules.firstWhere(
+          (r) => (r['fertilizer'] ?? '').toString().trim().toLowerCase() == normalizedPrediction,
+        );
+        debugPrint('✅ Exact match found: ${rule['fertilizer']}');
+      } catch (e) {
+        rule = null;
+      }
+
+      // KUNG WALANG EXACT MATCH, HANAPIN ANG PINAKAMALAPIT
+      if (rule == null) {
+        debugPrint('⚠️ No exact match. Finding closest match...');
+        for (final r in rules) {
+          final ruleName = (r['fertilizer'] ?? '').toString().trim().toLowerCase();
+          if (ruleName.contains(normalizedPrediction) ||
+              normalizedPrediction.contains(ruleName)) {
+            rule = r;
+            debugPrint('✅ Found closest match: ${r['fertilizer']}');
+            break;
+          }
+        }
+      }
+
+      // KUNG WALA PA RIN, GAMITIN ANG UNANG RULE (FALLBACK)
+      if (rule == null) {
+        debugPrint('⚠️ No match found. Using fallback: ${rules.first['fertilizer']}');
+        rule = rules.first;
+      }
+
       _recommendationResult = {
-        'fertilizer': fertilizerType,
+        'fertilizer': rule['fertilizer'] ?? fertilizerType,
         'image': rule['image'] ?? '',
         'google_search': rule['google_search'] ?? '',
         'alternative': rule['alternative'] ?? 'N/A',
@@ -367,12 +389,429 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
     return data.map((e) => Map<String, dynamic>.from(e)).toList();
   }
 
+  // ============================================
+  // RECOMMENDATION DIALOG
+  // ============================================
   void showRecommendationDialog(Map<String, dynamic> result) {
-    showDialog<void>(context: context, builder: (dialogContext) => AlertDialog(
-      title: const Text('Fertilizer Recommendation'),
-      content: Text(result['fertilizer']?.toString() ?? 'Unknown'),
-      actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('OK'))],
-    ));
+    final fertilizer = result['fertilizer'] ?? 'Unknown';
+    final imageUrl = result['image'] ?? '';
+    final googleSearch = result['google_search'] ?? '';
+    final alternative = result['alternative'] ?? 'N/A';
+    final amount = result['amount'] ?? 'N/A';
+    final applicationRate = result['application_rate'] ?? '';
+    final modeOfApplication = result['mode_of_application'] ?? '';
+    final applicationTiming = result['application_timing'] ?? '';
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          child: Container(
+            constraints: const BoxConstraints(maxHeight: 700),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // HEADER
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 55,
+                        height: 55,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.green.withOpacity(0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(Icons.eco, color: Colors.white, size: 28),
+                      ),
+                      const SizedBox(width: 14),
+                      const Expanded(
+                        child: Text(
+                          "Fertilizer Recommendation",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1B5E20),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        icon: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.close, size: 18, color: Colors.black54),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // SCROLLABLE CONTENT
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // RECOMMENDED FERTILIZER
+                        const Text(
+                          "RECOMMENDED FERTILIZER",
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2E7D32),
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () {
+                            if (googleSearch.isNotEmpty) {
+                              launchGoogleSearch(googleSearch);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE8F5E9),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: const Color(0xFF43A047), width: 1.5),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 65,
+                                  height: 65,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: imageUrl.isNotEmpty
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(12),
+                                          child: Image.network(
+                                            imageUrl,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (context, error, stackTrace) {
+                                              return const Icon(Icons.shopping_bag, size: 35, color: Color(0xFF43A047));
+                                            },
+                                          ),
+                                        )
+                                      : const Icon(Icons.shopping_bag, size: 35, color: Color(0xFF43A047)),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        fertilizer,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF1B5E20),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.search, size: 14, color: Color(0xFF43A047)),
+                                          const SizedBox(width: 4),
+                                          const Text(
+                                            "Click Here to see more",
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFF43A047),
+                                              decoration: TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(Icons.arrow_forward_ios, size: 14, color: Color(0xFF43A047)),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // ALTERNATIVE FERTILIZER
+                        const Text(
+                          "ALTERNATIVE FERTILIZER",
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFE65100),
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () {
+                            if (alternative != 'N/A' && alternative.isNotEmpty) {
+                              final altSearch =
+                                  'https://www.google.com/search?q=${Uri.encodeComponent(alternative + " fertilizer")}&tbm=isch';
+                              launchGoogleSearch(altSearch);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF3E0),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: const Color(0xFFFB8C00), width: 1.5),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 65,
+                                  height: 65,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(Icons.shopping_bag, size: 35, color: Color(0xFFFB8C00)),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        alternative,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFFE65100),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.search, size: 14, color: Color(0xFFFB8C00)),
+                                          const SizedBox(width: 4),
+                                          const Text(
+                                            "Click Here to see more",
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFFFB8C00),
+                                              decoration: TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(Icons.arrow_forward_ios, size: 14, color: Color(0xFFFB8C00)),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // RECOMMENDED AMOUNT
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F5E9),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 50,
+                                height: 50,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF2E7D32),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.scale, color: Colors.white, size: 24),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      "RECOMMENDED AMOUNT",
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF2E7D32),
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      amount,
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1B5E20),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // APPLICATION DETAILS
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F7FA),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    const Icon(Icons.speed, color: Color(0xFF2E7D32), size: 30),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      "Application Rate",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontSize: 11, color: Color(0xFF666666)),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      applicationRate.isNotEmpty ? applicationRate : 'N/A',
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1B5E20),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(height: 80, width: 1, color: Colors.grey.shade300),
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    const Icon(Icons.water_drop, color: Color(0xFF1565C0), size: 30),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      "Mode of Application",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontSize: 11, color: Color(0xFF666666)),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      modeOfApplication.isNotEmpty ? modeOfApplication : 'N/A',
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1B5E20),
+                                      ),
+                                      maxLines: 3,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(height: 80, width: 1, color: Colors.grey.shade300),
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    const Icon(Icons.calendar_month, color: Color(0xFF6A1B9A), size: 30),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      "Application Timing",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontSize: 11, color: Color(0xFF666666)),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      applicationTiming.isNotEmpty ? applicationTiming : 'N/A',
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1B5E20),
+                                      ),
+                                      maxLines: 3,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // BOTTOM BUTTON
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF43A047),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 4,
+                        shadowColor: Colors.green.withOpacity(0.4),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                      ),
+                      icon: const Icon(Icons.check, size: 20),
+                      label: const Text(
+                        "Got it",
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void showMoistureReminderDialog() {
