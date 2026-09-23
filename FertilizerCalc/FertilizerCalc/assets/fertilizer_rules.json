@@ -13,8 +13,8 @@
     "fertilizer": "Agricultural Lime + No nitrogen fertilizer — corrective action needed",
     "image": "https://via.placeholder.com/100/795548/ffffff?text=Lime+No+N",
     "google_search": "https://www.google.com/search?q=Lime+no+nitrogen+fertilizer+corrective+action&tbm=isch",
-    "alternative": "Dolomitic Lime + Flush soil with water — no nitrogen alternative",
-    "amount": "Agri Lime: 500-1000, Stop nitrogen fertilizer: 0 kg/ha",
+    "alternative": "Dolomitic Lime + Flush soil with water",
+    "amount": "500-1000 kg/ha",
     "application_rate": "8 bags per hectare",
     "mode_of_application": "Apply lime to adjust pH. Stop all nitrogen-based fertilizers completely",
     "application_timing": "Lime: 2-3 months before planting. Stop nitrogen immediately"
@@ -33,8 +33,8 @@
     "fertilizer": "Carbonized Rice Hull + Compost + No fertilizer — corrective action needed",
     "image": "https://via.placeholder.com/100/8D6E63/ffffff?text=CRH+Stop",
     "google_search": "https://www.google.com/search?q=Carbonized+rice+hull+no+fertilizer&tbm=isch",
-    "alternative": "Elemental Sulfur + Organic Compost + Flush soil with water",
-    "amount": "Carbonized Rice Hull: 1000-2000, Stop all fertilizers: 0 kg/ha",
+    "alternative": "Elemental Sulfur + Organic Compost + Flush soil",
+    "amount": "1000-2000 kg/ha",
     "application_rate": "10 bags per hectare",
     "mode_of_application": "Apply organic matter to improve soil structure. Stop all chemical fertilizers",
     "application_timing": "Apply organic matter immediately. Monitor soil nutrients regularly"
@@ -64,7 +64,7 @@
     "image": "https://via.placeholder.com/100/9C27B0/ffffff?text=MOP+Lime",
     "google_search": "https://www.google.com/search?q=MOP+lime+fertilizer&tbm=isch",
     "alternative": "Potassium Sulfate (0-0-50) + Dolomitic Lime",
-    "amount": "MOP: 40-60, Agri Lime: 500-1000 kg/ha",
+    "amount": "40-60 + 500-1000 kg/ha",
     "application_rate": "10 bags per hectare (combined)",
     "mode_of_application": "Apply lime first, wait 2 weeks, then broadcast MOP",
     "application_timing": "Lime: 2 months before planting. MOP: 1 week before planting"
@@ -83,8 +83,8 @@
     "fertilizer": "No phosphorus fertilizer — corrective action needed",
     "image": "https://via.placeholder.com/100/FF9800/ffffff?text=No+P",
     "google_search": "https://www.google.com/search?q=No+phosphorus+fertilizer+corrective+action&tbm=isch",
-    "alternative": "Flush soil with water — no phosphorus alternative",
-    "amount": "Stop phosphorus fertilizer: 0 kg/ha",
+    "alternative": "Flush soil with water",
+    "amount": "0 kg/ha",
     "application_rate": "0 bags per hectare",
     "mode_of_application": "Stop all phosphorus-based fertilizers. Water the soil thoroughly",
     "application_timing": "Immediately. Monitor phosphorus levels regularly"
@@ -93,8 +93,8 @@
     "fertilizer": "No potassium fertilizer — corrective action needed",
     "image": "https://via.placeholder.com/100/9C27B0/ffffff?text=No+K",
     "google_search": "https://www.google.com/search?q=No+potassium+fertilizer+corrective+action&tbm=isch",
-    "alternative": "Flush soil with water — no potassium alternative",
-    "amount": "Stop potassium fertilizer: 0 kg/ha",
+    "alternative": "Flush soil with water",
+    "amount": "0 kg/ha",
     "application_rate": "0 bags per hectare",
     "mode_of_application": "Stop all potassium-based fertilizers. Water the soil to help leach excess potassium",
     "application_timing": "Immediately. Monitor potassium levels in subsequent months"
@@ -114,7 +114,7 @@
     "image": "https://via.placeholder.com/100/FF9800/ffffff?text=Sol+Lime",
     "google_search": "https://www.google.com/search?q=Solophos+lime+fertilizer&tbm=isch",
     "alternative": "Triple Superphosphate (0-46-0) + Dolomitic Lime",
-    "amount": "Solophos: 40-50, Agri Lime: 500-1000 kg/ha",
+    "amount": "40-50 + 500-1000 kg/ha",
     "application_rate": "8 bags per hectare (combined)",
     "mode_of_application": "Apply lime first, wait 2 weeks, then broadcast Solophos",
     "application_timing": "Lime: 2 months before planting. Solophos: 1 week before planting"
@@ -124,7 +124,7 @@
     "image": "https://via.placeholder.com/100/FF9800/ffffff?text=Sol+CRH",
     "google_search": "https://www.google.com/search?q=Solophos+carbonized+rice+hull+compost&tbm=isch",
     "alternative": "Triple Superphosphate (0-46-0) + Elemental Sulfur + Organic Compost",
-    "amount": "Solophos: 40-50, Carbonized Rice Hull: 1000-2000 kg/ha",
+    "amount": "40-50 + 1000-2000 kg/ha",
     "application_rate": "8 bags per hectare (combined)",
     "mode_of_application": "Apply organic matter first, incorporate into soil, then broadcast Solophos 2 weeks later",
     "application_timing": "Organic matter: 3-4 weeks before planting. Solophos: 1 week before planting"
@@ -144,7 +144,7 @@
     "image": "https://via.placeholder.com/100/4CAF50/ffffff?text=Urea+Lime",
     "google_search": "https://www.google.com/search?q=Urea+lime+fertilizer&tbm=isch",
     "alternative": "Ammonium Sulfate (21-0-0) + Dolomitic Lime",
-    "amount": "Urea: 50-70, Agri Lime: 500-1000 kg/ha",
+    "amount": "50-70 + 500-1000 kg/ha",
     "application_rate": "10 bags per hectare (combined)",
     "mode_of_application": "Apply lime first, wait 2-3 weeks, then broadcast Urea",
     "application_timing": "Lime: 2 months before planting. Urea: 1 week before planting"
@@ -154,7 +154,7 @@
     "image": "https://via.placeholder.com/100/4CAF50/ffffff?text=Urea+CRH",
     "google_search": "https://www.google.com/search?q=Urea+carbonized+rice+hull+compost&tbm=isch",
     "alternative": "Ammonium Sulfate (21-0-0) + Elemental Sulfur + Organic Compost",
-    "amount": "Urea: 50-70, Carbonized Rice Hull: 1000-2000 kg/ha",
+    "amount": "50-70 + 1000-2000 kg/ha",
     "application_rate": "12 bags per hectare (combined)",
     "mode_of_application": "Apply organic matter first, incorporate into soil, then broadcast Urea 2 weeks later",
     "application_timing": "Organic matter: 3-4 weeks before planting. Urea: 1 week before planting"
@@ -164,7 +164,7 @@
     "image": "https://via.placeholder.com/100/4CAF50/ffffff?text=Urea+Sol",
     "google_search": "https://www.google.com/search?q=Urea+Solophos+lime+fertilizer&tbm=isch",
     "alternative": "Ammonium Sulfate + Triple Superphosphate + Dolomitic Lime",
-    "amount": "Urea: 50-70, Solophos: 40-50, Agri Lime: 500-1000 kg/ha",
+    "amount": "50-70 + 40-50 + 500-1000 kg/ha",
     "application_rate": "12 bags per hectare (combined)",
     "mode_of_application": "Apply lime first and incorporate into soil. Wait 2 weeks, then broadcast Urea and Solophos",
     "application_timing": "Lime: 2 months before planting. Fertilizers: 1-2 weeks before planting"
@@ -174,7 +174,7 @@
     "image": "https://via.placeholder.com/100/2196F3/ffffff?text=NPK+Lime",
     "google_search": "https://www.google.com/search?q=Urea+Solophos+MOP+lime+fertilizer&tbm=isch",
     "alternative": "Ammonium Sulfate + Triple Superphosphate + Potassium Sulfate + Dolomitic Lime",
-    "amount": "Urea: 50-70, Solophos: 40-50, MOP: 40-60, Agri Lime: 500-1000 kg/ha",
+    "amount": "50-70 + 40-50 + 40-60 + 500-1000 kg/ha",
     "application_rate": "15 bags per hectare (combined)",
     "mode_of_application": "Apply lime first. Wait 2 weeks. Broadcast Urea, Solophos, and MOP together",
     "application_timing": "Lime: 2-3 months before planting. Fertilizers: 1 week before planting"
