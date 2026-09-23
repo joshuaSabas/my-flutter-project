@@ -30,6 +30,9 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
   Map<String, dynamic>? _recommendationResult;
   StreamSubscription<List<int>>? _sensorSubscription;
 
+  // CALLBACK para i-refresh ang History screen pag na-save
+  VoidCallback? onHistorySaved;
+
   bool get isConnected => _isConnected;
   bool get isLoading => _isLoading;
   bool get isScanning => _isScanning;
@@ -247,7 +250,7 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
       if (reading != null) {
         _currentReading = reading;
         _errorMessage = '';
-        _saveToHistory(reading);
+        // WALANG AUTO-SAVE DITO. Manual na pag-save sa recommendation dialog.
         _saveState();
         notifyListeners();
       }
@@ -286,32 +289,15 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
       ph = parts[3].trim();
     }
 
-    // ============================================
-    // VALIDATION — DAPAT NASA RANGE
-    // ============================================
     final nVal = double.tryParse(n) ?? -1;
     final pVal = double.tryParse(p) ?? -1;
     final kVal = double.tryParse(k) ?? -1;
     final phVal = double.tryParse(ph) ?? -1;
 
-    // NPK: 0-2000 mg/kg lang
-    if (nVal < 0 || nVal > 2000) {
-      debugPrint('❌ Invalid N: $n');
-      return null;
-    }
-    if (pVal < 0 || pVal > 2000) {
-      debugPrint('❌ Invalid P: $p');
-      return null;
-    }
-    if (kVal < 0 || kVal > 2000) {
-      debugPrint('❌ Invalid K: $k');
-      return null;
-    }
-    // pH: 0-14 lang
-    if (phVal < 0 || phVal > 14) {
-      debugPrint('❌ Invalid pH: $ph');
-      return null;
-    }
+    if (nVal < 0 || nVal > 2000) return null;
+    if (pVal < 0 || pVal > 2000) return null;
+    if (kVal < 0 || kVal > 2000) return null;
+    if (phVal < 0 || phVal > 14) return null;
 
     return SensorReading(
       nitrogen: n,
@@ -320,14 +306,6 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
       ph: ph,
       timestamp: DateTime.now(),
     );
-  }
-
-  Future<void> _saveToHistory(SensorReading reading) async {
-    try {
-      await DatabaseHelper().insertRecommendation(reading);
-    } catch (e) {
-      debugPrint('Error saving history: $e');
-    }
   }
 
   Future<void> disconnect() async {
@@ -344,8 +322,14 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> launchGoogleSearch(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) await launchUrl(uri);
+    try {
+      final uri = Uri.parse(url);
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        debugPrint('Could not launch $url');
+      }
+    } catch (e) {
+      debugPrint('Error launching URL: $e');
+    }
   }
 
   // ============================================
@@ -890,34 +874,39 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () async {
-                            if (_currentReading != null && _recommendationResult != null) {
-                              try {
-                                final reading = SensorReading(
-                                  nitrogen: _currentReading!.nitrogen,
-                                  phosphorus: _currentReading!.phosphorus,
-                                  potassium: _currentReading!.potassium,
-                                  ph: _currentReading!.ph,
-                                  timestamp: DateTime.now(),
-                                  fertilizerType: fertilizer,
-                                  fertilizerImageUrl: imageUrl,
-                                  alternativeType: alternative,
-                                  recommendedSacks: 0,
-                                  amount: amount,
-                                  npkAnalysis: '',
-                                );
-                                await DatabaseHelper().insertRecommendation(reading);
+                            if (_currentReading == null || _recommendationResult == null) {
+                              return;
+                            }
+                            try {
+                              final reading = SensorReading(
+                                nitrogen: _currentReading!.nitrogen,
+                                phosphorus: _currentReading!.phosphorus,
+                                potassium: _currentReading!.potassium,
+                                ph: _currentReading!.ph,
+                                timestamp: DateTime.now(),
+                                fertilizerType: fertilizer,
+                                fertilizerImageUrl: imageUrl,
+                                alternativeType: alternative,
+                                recommendedSacks: 0,
+                                amount: amount,
+                                npkAnalysis: '',
+                              );
+                              await DatabaseHelper().insertRecommendation(reading);
 
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('✅ Saved to history!'),
-                                      backgroundColor: Colors.green,
-                                    ),
-                                  );
-                                }
-                              } catch (e) {
-                                debugPrint('Error saving to history: $e');
+                              // I-refresh ang History screen
+                              onHistorySaved?.call();
+
+                              if (dialogContext.mounted) {
+                                ScaffoldMessenger.of(dialogContext).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('✅ Saved to history!'),
+                                    backgroundColor: Colors.green,
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
                               }
+                            } catch (e) {
+                              debugPrint('Error saving to history: $e');
                             }
                           },
                           style: OutlinedButton.styleFrom(
@@ -962,13 +951,13 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                     ],
                   ),
                 ),
-              ], // close Column children
-            ),   // close Column
-          ),     // close Container
-        );       // close Dialog
-      },         // close builder
-    );           // close showDialog
-  }              // close showRecommendationDialog
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   void showMoistureReminderDialog() {
     showDialog<void>(
