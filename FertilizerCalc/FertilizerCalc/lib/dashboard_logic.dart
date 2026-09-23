@@ -264,25 +264,63 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   SensorReading? _parseSensorData(List<int> data) {
-    final message = String.fromCharCodes(data).trim();
-    if (message.isEmpty || message.contains('NO_DATA')) return null;
-    var n = '--', p = '--', k = '--', ph = '--';
-    if (message.contains(':')) {
-      for (final raw in message.split(',')) {
-        final part = raw.trim();
-        if (part.startsWith('N:')) n = part.substring(2).trim();
-        if (part.startsWith('P:')) p = part.substring(2).trim();
-        if (part.startsWith('K:')) k = part.substring(2).trim();
-        if (part.toLowerCase().startsWith('ph:')) ph = part.substring(3).trim();
-      }
-    } else {
-      final parts = message.split(',');
-      if (parts.length < 4) return null;
-      n = parts[0].trim(); p = parts[1].trim(); k = parts[2].trim(); ph = parts[3].trim();
+  final message = String.fromCharCodes(data).trim();
+  if (message.isEmpty || message.contains('NO_DATA')) return null;
+
+  var n = '--', p = '--', k = '--', ph = '--';
+
+  if (message.contains(':')) {
+    for (final raw in message.split(',')) {
+      final part = raw.trim();
+      if (part.startsWith('N:')) n = part.substring(2).trim();
+      if (part.startsWith('P:')) p = part.substring(2).trim();
+      if (part.startsWith('K:')) k = part.substring(2).trim();
+      if (part.toLowerCase().startsWith('ph:')) ph = part.substring(3).trim();
     }
-    if (n == '--' && p == '--' && k == '--' && ph == '--') return null;
-    return SensorReading(nitrogen: n, phosphorus: p, potassium: k, ph: ph, timestamp: DateTime.now());
+  } else {
+    final parts = message.split(',');
+    if (parts.length < 4) return null;
+    n = parts[0].trim();
+    p = parts[1].trim();
+    k = parts[2].trim();
+    ph = parts[3].trim();
   }
+
+  // ============================================
+  // VALIDATION — DAPAT NASA RANGE
+  // ============================================
+  final nVal = double.tryParse(n) ?? -1;
+  final pVal = double.tryParse(p) ?? -1;
+  final kVal = double.tryParse(k) ?? -1;
+  final phVal = double.tryParse(ph) ?? -1;
+
+  // NPK: 0-2000 mg/kg lang
+  if (nVal < 0 || nVal > 2000) {
+    debugPrint('❌ Invalid N: $n');
+    return null;
+  }
+  if (pVal < 0 || pVal > 2000) {
+    debugPrint('❌ Invalid P: $p');
+    return null;
+  }
+  if (kVal < 0 || kVal > 2000) {
+    debugPrint('❌ Invalid K: $k');
+    return null;
+  }
+  // pH: 0-14 lang
+  if (phVal < 0 || phVal > 14) {
+    debugPrint('❌ Invalid pH: $ph');
+    return null;
+  }
+
+  return SensorReading(
+    nitrogen: n,
+    phosphorus: p,
+    potassium: k,
+    ph: ph,
+    timestamp: DateTime.now(),
+  );
+}
 
   Future<void> _saveToHistory(SensorReading reading) async {
     try { await DatabaseHelper().insertRecommendation(reading); } catch (e) { debugPrint('Error saving history: $e'); }
@@ -777,36 +815,87 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                   ),
                 ),
 
-                // BOTTOM BUTTON
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF43A047),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        elevation: 4,
-                        shadowColor: Colors.green.withOpacity(0.4),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                      ),
-                      icon: const Icon(Icons.check, size: 20),
-                      label: const Text(
-                        "Got it",
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                      ),
+// BOTTOM BUTTONS
+Padding(
+  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+  child: Row(
+    children: [
+      // SAVE IN HISTORY BUTTON
+      Expanded(
+        child: OutlinedButton.icon(
+          onPressed: () async {
+            if (_currentReading != null && _recommendationResult != null) {
+              try {
+                final reading = SensorReading(
+                  nitrogen: _currentReading!.nitrogen,
+                  phosphorus: _currentReading!.phosphorus,
+                  potassium: _currentReading!.potassium,
+                  ph: _currentReading!.ph,
+                  timestamp: DateTime.now(),
+                  fertilizerType: fertilizer,
+                  fertilizerImageUrl: imageUrl,
+                  alternativeType: alternative,
+                  recommendedSacks: 0,
+                  amount: amount,
+                  npkAnalysis: '',
+                );
+                await DatabaseHelper().insertRecommendation(reading);
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('✅ Saved to history!'),
+                      backgroundColor: Colors.green,
                     ),
-                  ),
-                ),
-              ],
+                  );
+                }
+              } catch (e) {
+                debugPrint('Error saving to history: $e');
+              }
+            }
+          },
+          style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFF2E7D32),
+            side: const BorderSide(color: Color(0xFF2E7D32), width: 1.5),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
             ),
           ),
-        );
-      },
-    );
-  }
+          icon: const Icon(Icons.bookmark_border, size: 20),
+          label: const Text(
+            "Save in History",
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
+
+      const SizedBox(width: 12),
+
+      // GOT IT BUTTON
+      Expanded(
+        child: ElevatedButton.icon(
+          onPressed: () => Navigator.pop(dialogContext),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF43A047),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            elevation: 4,
+            shadowColor: Colors.green.withOpacity(0.4),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
+          ),
+          icon: const Icon(Icons.check, size: 20),
+          label: const Text(
+            "Got it",
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
+    ],
+  ),
+),
 
   void showMoistureReminderDialog() {
     showDialog<void>(
