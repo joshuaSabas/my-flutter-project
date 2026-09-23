@@ -18,6 +18,22 @@
         android:name="android.hardware.bluetooth"
         android:required="true" />
 
+    <!-- PARA MAKA-OPEN NG BROWSER (Chrome, etc.) -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT" />
+            <data android:mimeType="text/plain" />
+        </intent>
+    </queries>
+
     <application
         android:label="FertilizerCalc"
         android:name="${applicationName}"
@@ -49,12 +65,5 @@
             android:value="2" />
 
     </application>
-
-    <queries>
-        <intent>
-            <action android:name="android.intent.action.PROCESS_TEXT" />
-            <data android:mimeType="text/plain" />
-        </intent>
-    </queries>
 
 </manifest>
