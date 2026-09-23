@@ -326,9 +326,6 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
 
       final rules = await _loadFertilizerRules();
 
-      // ============================================
-      // CASE-INSENSITIVE AT TRIMMED NA PAGHAHANAP
-      // ============================================
       final normalizedPrediction = fertilizerType.trim().toLowerCase();
 
       Map<String, dynamic>? rule;
@@ -341,7 +338,6 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
         rule = null;
       }
 
-      // KUNG WALANG EXACT MATCH, HANAPIN ANG PINAKAMALAPIT
       if (rule == null) {
         debugPrint('⚠️ No exact match. Finding closest match...');
         for (final r in rules) {
@@ -355,7 +351,6 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
         }
       }
 
-      // KUNG WALA PA RIN, GAMITIN ANG UNANG RULE (FALLBACK)
       if (rule == null) {
         debugPrint('⚠️ No match found. Using fallback: ${rules.first['fertilizer']}');
         rule = rules.first;
@@ -488,6 +483,7 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                         ),
                         const SizedBox(height: 8),
                         GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onTap: () {
                             if (googleSearch.isNotEmpty) {
                               launchGoogleSearch(googleSearch);
@@ -574,6 +570,7 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                         ),
                         const SizedBox(height: 8),
                         GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onTap: () {
                             if (alternative != 'N/A' && alternative.isNotEmpty) {
                               final altSearch =
@@ -647,6 +644,7 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
                                 width: 50,
@@ -675,7 +673,7 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                                     Text(
                                       amount,
                                       style: const TextStyle(
-                                        fontSize: 20,
+                                        fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         color: Color(0xFF1B5E20),
                                       ),
@@ -741,8 +739,6 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                                         fontWeight: FontWeight.bold,
                                         color: Color(0xFF1B5E20),
                                       ),
-                                      maxLines: 3,
-                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
                                 ),
@@ -767,8 +763,6 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                                         fontWeight: FontWeight.bold,
                                         color: Color(0xFF1B5E20),
                                       ),
-                                      maxLines: 3,
-                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
                                 ),
