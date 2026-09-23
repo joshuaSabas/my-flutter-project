@@ -1,4 +1,4 @@
-class SensorReading {
+  class SensorReading {
   int? id;
   final String nitrogen;
   final String phosphorus;
@@ -6,13 +6,19 @@ class SensorReading {
   final String ph;
   final DateTime timestamp;
   bool? feedback;
-  
+
   String? fertilizerType;
   String? fertilizerImageUrl;
   String? alternativeType;
   int? recommendedSacks;
   String? amount;
   String? npkAnalysis;
+
+  // BAGONG FIELDS
+  String? googleSearchUrl;
+  String? applicationRate;
+  String? modeOfApplication;
+  String? applicationTiming;
 
   SensorReading({
     this.id,
@@ -28,6 +34,10 @@ class SensorReading {
     this.recommendedSacks,
     this.amount,
     this.npkAnalysis,
+    this.googleSearchUrl,
+    this.applicationRate,
+    this.modeOfApplication,
+    this.applicationTiming,
   });
 
   factory SensorReading.fromJson(Map<String, dynamic> json) {
@@ -45,6 +55,10 @@ class SensorReading {
       recommendedSacks: json['recommendedSacks'],
       amount: json['amount'],
       npkAnalysis: json['npkAnalysis'],
+      googleSearchUrl: json['googleSearchUrl'],
+      applicationRate: json['applicationRate'],
+      modeOfApplication: json['modeOfApplication'],
+      applicationTiming: json['applicationTiming'],
     );
   }
 
@@ -63,10 +77,13 @@ class SensorReading {
       'recommendedSacks': recommendedSacks,
       'amount': amount,
       'npkAnalysis': npkAnalysis,
+      'googleSearchUrl': googleSearchUrl,
+      'applicationRate': applicationRate,
+      'modeOfApplication': modeOfApplication,
+      'applicationTiming': applicationTiming,
     };
   }
 
-  // 👇 DAGDAG ITO
   factory SensorReading.fromMap(Map<String, dynamic> map) {
     return SensorReading(
       id: map['id'],
@@ -82,10 +99,13 @@ class SensorReading {
       recommendedSacks: map['recommendedSacks'] ?? 0,
       amount: map['amount'] ?? '',
       npkAnalysis: map['npkAnalysis'] ?? '',
+      googleSearchUrl: map['googleSearchUrl'] ?? '',
+      applicationRate: map['applicationRate'] ?? '',
+      modeOfApplication: map['modeOfApplication'] ?? '',
+      applicationTiming: map['applicationTiming'] ?? '',
     );
   }
 
-  // 👇 DAGDAG ITO
   Map<String, dynamic> toMap() {
     return {
       'id': id ?? DateTime.now().millisecondsSinceEpoch,
@@ -101,6 +121,10 @@ class SensorReading {
       'recommendedSacks': recommendedSacks ?? 0,
       'amount': amount ?? '',
       'npkAnalysis': npkAnalysis ?? '',
+      'googleSearchUrl': googleSearchUrl ?? '',
+      'applicationRate': applicationRate ?? '',
+      'modeOfApplication': modeOfApplication ?? '',
+      'applicationTiming': applicationTiming ?? '',
     };
   }
 }
