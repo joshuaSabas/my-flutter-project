@@ -24,6 +24,10 @@ class _HistoryScreenState extends State<HistoryScreen>
     _loadHistory();
   }
 
+  void refreshHistory() {
+    _loadHistory();
+  }
+
   Future<void> _loadHistory() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
@@ -32,9 +36,18 @@ class _HistoryScreenState extends State<HistoryScreen>
       final db = DatabaseHelper();
       final data = await db.getAllRecommendations();
 
+      // ============================================
+      // FILTER: Ipakita lang ang may fertilizerType
+      // (yung kumpletong save mula sa recommendation dialog)
+      // ============================================
+      final filtered = data.where((item) {
+        return item.fertilizerType != null &&
+            item.fertilizerType!.trim().isNotEmpty;
+      }).toList();
+
       if (!mounted) return;
       setState(() {
-        _history = data;
+        _history = filtered;
         _isLoading = false;
       });
     } catch (e) {
@@ -62,7 +75,6 @@ class _HistoryScreenState extends State<HistoryScreen>
       color: const Color(0xFFF5F7FA),
       child: Column(
         children: [
-          // HEADER
           Container(
             color: Colors.white,
             padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
@@ -84,8 +96,6 @@ class _HistoryScreenState extends State<HistoryScreen>
               ],
             ),
           ),
-
-          // LIST
           Expanded(
             child: _isLoading
                 ? const Center(
@@ -165,7 +175,6 @@ class _HistoryScreenState extends State<HistoryScreen>
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // AVATAR / ICON
                 Container(
                   width: 44,
                   height: 44,
@@ -180,14 +189,12 @@ class _HistoryScreenState extends State<HistoryScreen>
                   ),
                 ),
                 const SizedBox(width: 14),
-
-                // TEXT
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Recommendation #${item.id ?? index + 1}',
+                        item.fertilizerType ?? 'Recommendation',
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -216,16 +223,6 @@ class _HistoryScreenState extends State<HistoryScreen>
                     ],
                   ),
                 ),
-
-                // FEEDBACK INDICATOR
-                if (item.feedback == true)
-                  const Icon(Icons.thumb_up, color: Colors.green, size: 18)
-                else if (item.feedback == false)
-                  const Icon(Icons.thumb_down, color: Colors.red, size: 18),
-
-                const SizedBox(width: 4),
-
-                // DELETE
                 IconButton(
                   icon: const Icon(
                     Icons.delete_outline,
@@ -236,8 +233,6 @@ class _HistoryScreenState extends State<HistoryScreen>
                       ? null
                       : () => _showDeleteDialog(item.id!),
                 ),
-
-                // ARROW
                 const Icon(
                   Icons.chevron_right,
                   color: Colors.grey,
