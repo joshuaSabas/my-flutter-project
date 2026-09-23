@@ -314,15 +314,30 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                 ),
                 child: Column(
                   children: [
-                    _buildAppDetail("Application Rate", applicationRate, Icons.speed, const Color(0xFF2E7D32)),
+                    _buildAppDetail(
+                      "Application Rate",
+                      applicationRate,
+                      Icons.speed,
+                      const Color(0xFF2E7D32),
+                    ),
                     const SizedBox(height: 16),
                     Divider(height: 1, color: Colors.grey.shade300),
                     const SizedBox(height: 16),
-                    _buildAppDetail("Mode of Application", modeOfApplication, Icons.water_drop, const Color(0xFF1565C0)),
+                    _buildAppDetail(
+                      "Mode of Application",
+                      modeOfApplication,
+                      Icons.water_drop,
+                      const Color(0xFF1565C0),
+                    ),
                     const SizedBox(height: 16),
                     Divider(height: 1, color: Colors.grey.shade300),
                     const SizedBox(height: 16),
-                    _buildAppDetail("Application Timing", applicationTiming, Icons.calendar_month, const Color(0xFF6A1B9A)),
+                    _buildAppDetail(
+                      "Application Timing",
+                      applicationTiming,
+                      Icons.calendar_month,
+                      const Color(0xFF6A1B9A),
+                    ),
                   ],
                 ),
               ),
@@ -344,17 +359,163 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // THUMBS UP
                 GestureDetector(
                   onTap: () => _updateFeedback(true),
                   child: Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: _feedback == true ? const Color(0xFF43A047) : const Color(0xFFE8F5E9),
+                      color: _feedback == true
+                          ? const Color(0xFF43A047)
+                          : const Color(0xFFE8F5E9),
                       shape: BoxShape.circle,
                       boxShadow: [
-                        BoxShadow(color: Colors.grey.shade200, blurRadius: 8, offset: const Offset(0, 4)),
+                        BoxShadow(
+                          color: Colors.grey.shade200,
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
                       ],
                     ),
                     child: Icon(
                       Icons.thumb_up,
-                      color: _feedback == true ? Colors.white : const
+                      color: _feedback == true ? Colors.white : const Color(0xFF43A047),
+                      size: 30,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 30),
+                // THUMBS DOWN
+                GestureDetector(
+                  onTap: () => _updateFeedback(false),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: _feedback == false
+                          ? const Color(0xFFE53935)
+                          : const Color(0xFFFFF3E0),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.shade200,
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.thumb_down,
+                      color: _feedback == false ? Colors.white : const Color(0xFFFB8C00),
+                      size: 30,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // HELPER: Application detail row (vertical, centered)
+  Widget _buildAppDetail(String label, String value, IconData icon, Color color) {
+    return Column(
+      children: [
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.12),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 26),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: color,
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value.isNotEmpty ? value : 'N/A',
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1B5E20),
+            height: 1.4,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildParamCard(String label, String name, String value, String unit, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade100,
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              name,
+              style: const TextStyle(fontSize: 10, color: Colors.black54),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            Text(
+              unit,
+              style: const TextStyle(fontSize: 9, color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
