@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_email_sender/flutter_email_sender.dart';
 
 class ReportProblemScreen extends StatefulWidget {
   const ReportProblemScreen({Key? key}) : super(key: key);
@@ -38,13 +38,11 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
   Future<void> _submitReport() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isSubmitting = true;
-    });
+    setState(() => _isSubmitting = true);
 
-    final String subject =
-        'FertilizerCalc Report: $_selectedCategory - ${_subjectController.text}';
-    final String body = '''
+    try {
+      final Email email = Email(
+        body: '''
 Name: ${_nameController.text}
 Email: ${_emailController.text}
 Category: $_selectedCategory
@@ -54,43 +52,35 @@ ${_descriptionController.text}
 
 ---
 Sent from FertilizerCalc App
-''';
+''',
+        subject: 'FertilizerCalc Report: $_selectedCategory - ${_subjectController.text}',
+        recipients: ['sabasj46@gmail.com'],
+        isHTML: false,
+      );
 
-    // 👇 ITO ANG TAMANG EMAIL ADDRESS
-    final Uri emailUri = Uri(
-      scheme: 'mailto',
-      path: 'sabasj46@gmail.com',  // 👈 BINAGO
-      query:
-          'subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
-    );
+      await FlutterEmailSender.send(email);
 
-    setState(() {
-      _isSubmitting = false;
-    });
-
-    if (await canLaunchUrl(emailUri)) {
-      await launchUrl(emailUri);
-    } else {
-      _showErrorDialog();
-    }
-  }
-
-  void _showErrorDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Unable to Send Email'),
-        content: const Text(
-          'Please send your report directly to sabasj46@gmail.com',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Report sent successfully!'),
+            backgroundColor: Colors.green,
           ),
-        ],
-      ),
-    );
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      setState(() => _isSubmitting = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Failed to send: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -100,7 +90,6 @@ Sent from FertilizerCalc App
       body: SafeArea(
         child: Column(
           children: [
-            // HEADER
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
@@ -115,11 +104,7 @@ Sent from FertilizerCalc App
                 children: [
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(
-                      Icons.arrow_back,
-                      color: Colors.white,
-                      size: 26,
-                    ),
+                    icon: const Icon(Icons.arrow_back, color: Colors.white, size: 26),
                   ),
                   const SizedBox(width: 8),
                   const Text(
@@ -133,9 +118,7 @@ Sent from FertilizerCalc App
                 ],
               ),
             ),
-
             const SizedBox(height: 20),
-
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
@@ -166,44 +149,30 @@ Sent from FertilizerCalc App
                                 color: Colors.red.shade50,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(
-                                Icons.bug_report,
-                                color: Colors.red,
-                                size: 28,
-                              ),
+                              child: const Icon(Icons.bug_report, color: Colors.red, size: 28),
                             ),
                             const SizedBox(width: 14),
                             const Expanded(
                               child: Text(
-                                'We\'re here to help! Report any issues or suggestions and we\'ll get back to you as soon as possible.',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.black87,
-                                  height: 1.4,
-                                ),
+                                'We\'re here to help! Report any issues or suggestions.',
+                                style: TextStyle(fontSize: 13, color: Colors.black87, height: 1.4),
                               ),
                             ),
                           ],
                         ),
                       ),
-
                       const SizedBox(height: 20),
-
                       _buildTextField(
                         controller: _nameController,
                         label: 'Full Name',
                         hint: 'Enter your full name',
                         icon: Icons.person_outline,
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your name';
-                          }
+                          if (value == null || value.isEmpty) return 'Please enter your name';
                           return null;
                         },
                       ),
-
                       const SizedBox(height: 14),
-
                       _buildTextField(
                         controller: _emailController,
                         label: 'Email Address',
@@ -211,18 +180,12 @@ Sent from FertilizerCalc App
                         icon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your email';
-                          }
-                          if (!value.contains('@') || !value.contains('.')) {
-                            return 'Please enter a valid email';
-                          }
+                          if (value == null || value.isEmpty) return 'Please enter your email';
+                          if (!value.contains('@') || !value.contains('.')) return 'Please enter a valid email';
                           return null;
                         },
                       ),
-
                       const SizedBox(height: 14),
-
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -251,31 +214,23 @@ Sent from FertilizerCalc App
                               );
                             }).toList(),
                             onChanged: (String? value) {
-                              setState(() {
-                                _selectedCategory = value!;
-                              });
+                              setState(() => _selectedCategory = value!);
                             },
                           ),
                         ),
                       ),
-
                       const SizedBox(height: 14),
-
                       _buildTextField(
                         controller: _subjectController,
                         label: 'Subject',
                         hint: 'Brief summary of the issue',
                         icon: Icons.subject_outlined,
                         validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a subject';
-                          }
+                          if (value == null || value.isEmpty) return 'Please enter a subject';
                           return null;
                         },
                       ),
-
                       const SizedBox(height: 14),
-
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -300,20 +255,14 @@ Sent from FertilizerCalc App
                               icon: Icon(Icons.description_outlined),
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please describe the issue';
-                              }
-                              if (value.length < 10) {
-                                return 'Please provide more details';
-                              }
+                              if (value == null || value.isEmpty) return 'Please describe the issue';
+                              if (value.length < 10) return 'Please provide more details';
                               return null;
                             },
                           ),
                         ),
                       ),
-
                       const SizedBox(height: 20),
-
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -322,19 +271,14 @@ Sent from FertilizerCalc App
                             backgroundColor: const Color(0xFF2E7D32),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             elevation: 4,
                           ),
                           child: _isSubmitting
                               ? const SizedBox(
                                   height: 20,
                                   width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                 )
                               : const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -343,28 +287,19 @@ Sent from FertilizerCalc App
                                     SizedBox(width: 10),
                                     Text(
                                       'Submit Report',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                     ),
                                   ],
                                 ),
                         ),
                       ),
-
                       const SizedBox(height: 12),
-
                       Center(
                         child: Text(
                           'We\'ll get back to you within 24-48 hours',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade500,
-                          ),
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                         ),
                       ),
-
                       const SizedBox(height: 20),
                     ],
                   ),
