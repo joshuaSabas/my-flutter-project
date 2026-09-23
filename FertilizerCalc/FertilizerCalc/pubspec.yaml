@@ -10,8 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-    flutter_email_sender: ^6.0.1
-
+  flutter_email_sender: ^6.0.1
   flutter_bluetooth_serial_plus: ^0.5.6
   permission_handler: ^11.3.1
   shared_preferences: ^2.2.2
@@ -22,7 +21,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
   flutter_launcher_icons: ^0.13.1
-  flutter_native_splash: ^2.4.1 # Idinagdag para sa itim na screen
+  flutter_native_splash: ^2.4.1
 
 flutter:
   uses-material-design: true
@@ -34,15 +33,12 @@ flutter:
     - assets/labels.json
     - assets/fertilizer_rules.json
 
-# Configuration para sa App Icon
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "images/icon.png" # Siguraduhing "icon.png" ang file name sa iyong images folder
+  image_path: "images/icon.png"
 
-# Configuration para sa Itim na Screen (Splash Screen)
 flutter_native_splash:
-  color: "#000000" # Gagawing purong itim ang screen
-  # Walang image_path na nilagay dito kaya walang Flutter logo o kahit anong logo na lalabas
+  color: "#000000"
   android_12:
-    color: "#000000" # Para sa mga bagong bersyon ng Android
+    color: "#000000"
