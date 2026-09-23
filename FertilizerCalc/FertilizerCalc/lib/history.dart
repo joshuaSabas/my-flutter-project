@@ -62,6 +62,7 @@ class _HistoryScreenState extends State<HistoryScreen>
       color: const Color(0xFFF5F7FA),
       child: Column(
         children: [
+          // HEADER
           Container(
             color: Colors.white,
             padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
@@ -83,6 +84,8 @@ class _HistoryScreenState extends State<HistoryScreen>
               ],
             ),
           ),
+
+          // LIST
           Expanded(
             child: _isLoading
                 ? const Center(
@@ -131,18 +134,20 @@ class _HistoryScreenState extends State<HistoryScreen>
   }
 
   Widget _buildHistoryList() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: _history.length,
+      separatorBuilder: (_, __) => const Divider(
+        height: 1,
+        thickness: 0.5,
+        color: Color(0xFFE0E0E0),
+        indent: 76,
+      ),
       itemBuilder: (context, index) {
         final item = _history[index];
+        final safeTimestamp = _formatTimestamp(item.timestamp);
 
-        final timestampText = item.timestamp.toLocal().toString();
-        final safeTimestamp = timestampText.length > 19
-            ? timestampText.substring(0, 19)
-            : timestampText;
-
-        return GestureDetector(
+        return InkWell(
           onTap: () {
             Navigator.push(
               context,
@@ -155,105 +160,88 @@ class _HistoryScreenState extends State<HistoryScreen>
             );
           },
           child: Container(
-            margin: const EdgeInsets.only(bottom: 14),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.shade200,
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 45,
-                      height: 45,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFE8F5E9),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.eco, color: Color(0xFF43A047), size: 24),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Recommendation #${item.id ?? index + 1}',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1B5E20),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            safeTimestamp,
-                            style: const TextStyle(fontSize: 11, color: Colors.grey),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // FEEDBACK INDICATOR
-                    if (item.feedback == true)
-                      const Icon(Icons.thumb_up, color: Colors.green, size: 20)
-                    else if (item.feedback == false)
-                      const Icon(Icons.thumb_down, color: Colors.red, size: 20),
-                    const SizedBox(width: 4),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.red, size: 22),
-                      onPressed: item.id == null ? null : () => _showDeleteDialog(item.id!),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Soil Parameters:',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF333333),
+                // AVATAR / ICON
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFE8F5E9),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.eco,
+                    color: Color(0xFF43A047),
+                    size: 22,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    _buildParamChip('N', item.nitrogen, Colors.green),
-                    _buildParamChip('P', item.phosphorus, Colors.orange),
-                    _buildParamChip('K', item.potassium, Colors.blue),
-                    _buildParamChip('pH', item.ph, Colors.purple),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Tap to view details',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade500,
-                        fontStyle: FontStyle.italic,
+                const SizedBox(width: 14),
+
+                // TEXT
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Recommendation #${item.id ?? index + 1}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1B5E20),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: 12,
-                      color: Colors.grey.shade500,
-                    ),
-                  ],
+                      const SizedBox(height: 3),
+                      Text(
+                        safeTimestamp,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      const Text(
+                        'Tap to view details',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // FEEDBACK INDICATOR
+                if (item.feedback == true)
+                  const Icon(Icons.thumb_up, color: Colors.green, size: 18)
+                else if (item.feedback == false)
+                  const Icon(Icons.thumb_down, color: Colors.red, size: 18),
+
+                const SizedBox(width: 4),
+
+                // DELETE
+                IconButton(
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: Colors.red,
+                    size: 22,
+                  ),
+                  onPressed: item.id == null
+                      ? null
+                      : () => _showDeleteDialog(item.id!),
+                ),
+
+                // ARROW
+                const Icon(
+                  Icons.chevron_right,
+                  color: Colors.grey,
+                  size: 22,
                 ),
               ],
             ),
@@ -263,23 +251,10 @@ class _HistoryScreenState extends State<HistoryScreen>
     );
   }
 
-  Widget _buildParamChip(String label, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.25)),
-      ),
-      child: Text(
-        '$label: $value',
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
-    );
+  String _formatTimestamp(DateTime ts) {
+    final local = ts.toLocal();
+    final text = local.toString();
+    return text.length > 19 ? text.substring(0, 19) : text;
   }
 
   void _showDeleteDialog(int id) {
