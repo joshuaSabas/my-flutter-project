@@ -56,9 +56,10 @@ ${_descriptionController.text}
 Sent from FertilizerCalc App
 ''';
 
+    // 👇 ITO ANG TAMANG EMAIL ADDRESS
     final Uri emailUri = Uri(
       scheme: 'mailto',
-      path: 'fertilizercalc@gmail.com',
+      path: 'sabasj46@gmail.com',  // 👈 BINAGO
       query:
           'subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
     );
@@ -80,7 +81,7 @@ Sent from FertilizerCalc App
       builder: (context) => AlertDialog(
         title: const Text('Unable to Send Email'),
         content: const Text(
-          'Please send your report directly to fertilizercalc@gmail.com',
+          'Please send your report directly to sabasj46@gmail.com',
         ),
         actions: [
           TextButton(
@@ -99,9 +100,7 @@ Sent from FertilizerCalc App
       body: SafeArea(
         child: Column(
           children: [
-            // ============================================
             // HEADER
-            // ============================================
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
@@ -145,7 +144,6 @@ Sent from FertilizerCalc App
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
@@ -191,7 +189,6 @@ Sent from FertilizerCalc App
 
                       const SizedBox(height: 20),
 
-                      // NAME
                       _buildTextField(
                         controller: _nameController,
                         label: 'Full Name',
@@ -207,7 +204,6 @@ Sent from FertilizerCalc App
 
                       const SizedBox(height: 14),
 
-                      // EMAIL
                       _buildTextField(
                         controller: _emailController,
                         label: 'Email Address',
@@ -227,7 +223,6 @@ Sent from FertilizerCalc App
 
                       const SizedBox(height: 14),
 
-                      // CATEGORY
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -266,7 +261,6 @@ Sent from FertilizerCalc App
 
                       const SizedBox(height: 14),
 
-                      // SUBJECT
                       _buildTextField(
                         controller: _subjectController,
                         label: 'Subject',
@@ -282,7 +276,6 @@ Sent from FertilizerCalc App
 
                       const SizedBox(height: 14),
 
-                      // DESCRIPTION
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -321,7 +314,6 @@ Sent from FertilizerCalc App
 
                       const SizedBox(height: 20),
 
-                      // SUBMIT BUTTON
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -363,7 +355,6 @@ Sent from FertilizerCalc App
 
                       const SizedBox(height: 12),
 
-                      // Footer note
                       Center(
                         child: Text(
                           'We\'ll get back to you within 24-48 hours',
