@@ -7,10 +7,10 @@ class HistoryScreen extends StatefulWidget {
   const HistoryScreen({Key? key}) : super(key: key);
 
   @override
-  State<HistoryScreen> createState() => _HistoryScreenState();
+  State<HistoryScreen> createState() => HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen>
+class HistoryScreenState extends State<HistoryScreen>
     with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
@@ -36,10 +36,6 @@ class _HistoryScreenState extends State<HistoryScreen>
       final db = DatabaseHelper();
       final data = await db.getAllRecommendations();
 
-      // ============================================
-      // FILTER: Ipakita lang ang may fertilizerType
-      // (yung kumpletong save mula sa recommendation dialog)
-      // ============================================
       final filtered = data.where((item) {
         return item.fertilizerType != null &&
             item.fertilizerType!.trim().isNotEmpty;
