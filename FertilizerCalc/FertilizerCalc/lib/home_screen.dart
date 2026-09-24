@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'history.dart';
-import 'existing_data_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool hasExistingData;
@@ -15,25 +14,24 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    DashboardScreen(),
-    HistoryScreen(),
-  ];
+  // GLOBAL KEY para ma-access ang HistoryScreen state
+  final GlobalKey<HistoryScreenState> _historyKey = GlobalKey<HistoryScreenState>();
+
+  late final List<Widget> _screens;
 
   @override
   void initState() {
     super.initState();
 
-    if (widget.hasExistingData) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (_) => const ExistingDataScreen(),
-        );
-      });
-    }
+    _screens = [
+      DashboardScreen(
+        onHistorySaved: () {
+          // I-refresh ang History screen pag clinick ang Save button
+          _historyKey.currentState?.refreshHistory();
+        },
+      ),
+      HistoryScreen(key: _historyKey),
+    ];
   }
 
   @override
