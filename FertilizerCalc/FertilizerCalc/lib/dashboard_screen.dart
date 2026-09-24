@@ -3,7 +3,9 @@ import 'dashboard_logic.dart';
 import 'dashboard_widgets.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  final VoidCallback? onHistorySaved;
+
+  const DashboardScreen({Key? key, this.onHistorySaved}) : super(key: key);
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -23,6 +25,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     super.initState();
     _logic = DashboardLogic(context: context);
     _logic.initState();
+    _logic.onHistorySaved = widget.onHistorySaved;
 
     _bounceController = AnimationController(
       vsync: this,
