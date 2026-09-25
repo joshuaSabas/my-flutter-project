@@ -171,7 +171,8 @@ class DashboardWidgets {
                   ),
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(20),
@@ -182,14 +183,18 @@ class DashboardWidgets {
                         Icon(
                           Icons.bluetooth,
                           size: 16,
-                          color: logic.isConnected ? Colors.greenAccent : Colors.white70,
+                          color: logic.isConnected
+                              ? Colors.greenAccent
+                              : Colors.white70,
                         ),
                         const SizedBox(width: 6),
                         Text(
                           logic.isConnected ? "Sensor Connected" : "No Sensor",
                           style: TextStyle(
                             fontSize: 12,
-                            color: logic.isConnected ? Colors.greenAccent : Colors.white70,
+                            color: logic.isConnected
+                                ? Colors.greenAccent
+                                : Colors.white70,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -319,7 +324,7 @@ class DashboardWidgets {
         ),
         child: Row(
           children: [
-            // SENSOR DEVICE — green circle background, mas malaki
+            // SENSOR DEVICE — green circle background
             Container(
               width: 72,
               height: 72,
@@ -332,7 +337,8 @@ class DashboardWidgets {
                   "images/sensor_device.png",
                   width: 46,
                   errorBuilder: (context, error, stackTrace) {
-                    return const Icon(Icons.sensors, size: 36, color: Colors.green);
+                    return const Icon(Icons.sensors,
+                        size: 36, color: Colors.green);
                   },
                 ),
               ),
@@ -373,7 +379,8 @@ class DashboardWidgets {
                         ),
                         SizedBox(width: 6),
                         Text('Scanning...',
-                            style: TextStyle(fontSize: 10, color: Colors.blue)),
+                            style: TextStyle(
+                                fontSize: 10, color: Colors.blue)),
                       ],
                     ),
                   ],
@@ -396,8 +403,9 @@ class DashboardWidgets {
               )
             else
               ElevatedButton.icon(
-                onPressed:
-                    logic.isLoading || logic.isScanning ? null : logic.connectToDevice,
+                onPressed: logic.isLoading || logic.isScanning
+                    ? null
+                    : logic.connectToDevice,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
@@ -503,14 +511,16 @@ class DashboardWidgets {
                 maxValue: 100,
                 status: logic.currentReading != null
                     ? DashboardHelpers.getStatusName(
-                        DashboardHelpers.getStatusP(
-                            int.tryParse(logic.currentReading!.phosphorus) ?? 0),
+                        DashboardHelpers.getStatusP(int.tryParse(
+                                logic.currentReading!.phosphorus) ??
+                            0),
                         '')
                     : '--',
                 statusColor: logic.currentReading != null
                     ? DashboardHelpers.getStatusColor(
-                        DashboardHelpers.getStatusP(
-                            int.tryParse(logic.currentReading!.phosphorus) ?? 0),
+                        DashboardHelpers.getStatusP(int.tryParse(
+                                logic.currentReading!.phosphorus) ??
+                            0),
                         '')
                     : Colors.grey,
               ),
@@ -529,14 +539,16 @@ class DashboardWidgets {
                 maxValue: 100,
                 status: logic.currentReading != null
                     ? DashboardHelpers.getStatusName(
-                        DashboardHelpers.getStatusK(
-                            int.tryParse(logic.currentReading!.potassium) ?? 0),
+                        DashboardHelpers.getStatusK(int.tryParse(
+                                logic.currentReading!.potassium) ??
+                            0),
                         '')
                     : '--',
                 statusColor: logic.currentReading != null
                     ? DashboardHelpers.getStatusColor(
-                        DashboardHelpers.getStatusK(
-                            int.tryParse(logic.currentReading!.potassium) ?? 0),
+                        DashboardHelpers.getStatusK(int.tryParse(
+                                logic.currentReading!.potassium) ??
+                            0),
                         '')
                     : Colors.grey,
               ),
@@ -631,7 +643,8 @@ class DashboardWidgets {
                       ),
                       Text(
                         subtitle,
-                        style: const TextStyle(fontSize: 10, color: Colors.grey),
+                        style:
+                            const TextStyle(fontSize: 10, color: Colors.grey),
                       ),
                     ],
                   ),
@@ -706,9 +719,10 @@ class DashboardWidgets {
   }
 
   // ============================================
-  // RECOMMENDATION CARD
+  // RECOMMENDATION CARD — BAGONG LAYOUT
   // ============================================
-  static Widget buildRecommendationCard(BuildContext context, DashboardLogic logic) {
+  static Widget buildRecommendationCard(
+      BuildContext context, DashboardLogic logic) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Container(
@@ -725,99 +739,110 @@ class DashboardWidgets {
             ),
           ],
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // LEAF — may green circle background
-            Container(
-              width: 72,
-              height: 72,
-              decoration: const BoxDecoration(
-                color: Color(0xFFE8F5E9),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Image.asset(
-                  "images/leaf.png",
-                  width: 42,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Icon(Icons.eco, size: 36, color: Colors.green);
-                  },
+            // ROW 1: leaf + title + fertilizer image
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // LEAF with green circle
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFE8F5E9),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Image.asset(
+                      "images/leaf.png",
+                      width: 42,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(Icons.eco,
+                            size: 36, color: Colors.green);
+                      },
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Fertilizer Recommendation",
+                const SizedBox(width: 14),
+                // TITLE
+                const Expanded(
+                  child: Text(
+                    "Fertilizer\nRecommendation",
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
+                      height: 1.3,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    logic.isConnected && logic.currentReading != null
-                        ? "Get personalized fertilizer recommendation based on real-time soil data."
-                        : "Connect to your soil sensor and get personalized fertilizer recommendation based on real-time soil data.",
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Colors.black54,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed:
-                          (logic.isConnected && logic.currentReading != null)
-                              ? logic.getRecommendation
-                              : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor: Colors.green.shade300,
-                        disabledForegroundColor: Colors.white70,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                      ),
-                      child: logic.isLoading
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: Colors.white),
-                            )
-                          : const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text("Get Recommendation",
-                                    style: TextStyle(fontSize: 14)),
-                                SizedBox(width: 8),
-                                Icon(Icons.arrow_forward_ios, size: 14),
-                              ],
-                            ),
-                    ),
-                  ),
-                ],
+                ),
+                // FERTILIZER IMAGE
+                Image.asset(
+                  "images/fertilizer.png",
+                  width: 60,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.science,
+                        size: 44, color: Colors.blue);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // DESCRIPTION
+            Text(
+              logic.isConnected && logic.currentReading != null
+                  ? "Get personalized fertilizer recommendation based on real-time soil data."
+                  : "Connect to your soil sensor and get personalized fertilizer recommendation based on real-time soil data.",
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black54,
+                height: 1.4,
               ),
             ),
-            const SizedBox(width: 10),
-            // FERTILIZER — mas malaki
-            Image.asset(
-              "images/fertilizer.png",
-              width: 60,
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(Icons.science, size: 44, color: Colors.blue);
-              },
+            const SizedBox(height: 16),
+            // FULL WIDTH BUTTON
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: (logic.isConnected && logic.currentReading != null)
+                    ? logic.getRecommendation
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2E7D32),
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: const Color(0xFFA5D6A7),
+                  disabledForegroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                ),
+                child: logic.isLoading
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Get Recommendation",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Icon(Icons.arrow_forward_ios, size: 14),
+                        ],
+                      ),
+              ),
             ),
           ],
         ),
@@ -914,7 +939,8 @@ class DashboardWidgets {
                     ),
                   ],
                 ),
-                child: const Icon(Icons.water_drop, color: Colors.white, size: 30),
+                child:
+                    const Icon(Icons.water_drop, color: Colors.white, size: 30),
               ),
             );
           },
