@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'dashboard_logic.dart';
 import 'dashboard_helpers.dart';
 import 'about_us_screen.dart';
-import 'report_problem_screen.dart';  
+import 'report_problem_screen.dart';
 
 class DashboardWidgets {
   // ============================================
-  // BUILD DASHBOARD BODY (WALANG SCAFFOLD)
+  // BUILD DASHBOARD BODY
   // ============================================
   static Widget buildDashboardBody({
     required BuildContext context,
@@ -130,183 +130,176 @@ class DashboardWidgets {
     );
   }
 
-static Widget buildDrawer(BuildContext context, DashboardLogic logic, Function(int) onDrawerTap) {
-  return Drawer(
-    child: Container(
-      color: Colors.white,
-      child: Column(
-        children: [
-          // ============================================
-          // HEADER
-          // ============================================
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(20, 50, 20, 25),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+  // ============================================
+  // DRAWER
+  // ============================================
+  static Widget buildDrawer(
+    BuildContext context,
+    DashboardLogic logic,
+    Function(int) onDrawerTap,
+  ) {
+    return Drawer(
+      child: Container(
+        color: Colors.white,
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 50, 20, 25),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "FertilizerCalc",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "FertilizerCalc",
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  "v1.0.0",
-                  style: TextStyle(fontSize: 13, color: Colors.white70),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
+                  const SizedBox(height: 2),
+                  const Text(
+                    "v1.0.0",
+                    style: TextStyle(fontSize: 13, color: Colors.white70),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.bluetooth,
-                        size: 16,
-                        color: logic.isConnected ? Colors.greenAccent : Colors.white70,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        logic.isConnected ? "Sensor Connected" : "No Sensor",
-                        style: TextStyle(
-                          fontSize: 12,
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.bluetooth,
+                          size: 16,
                           color: logic.isConnected ? Colors.greenAccent : Colors.white70,
-                          fontWeight: FontWeight.w500,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 6),
+                        Text(
+                          logic.isConnected ? "Sensor Connected" : "No Sensor",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: logic.isConnected ? Colors.greenAccent : Colors.white70,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                tileColor: const Color(0xFFE8F5E9),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.directions,
+                    color: Color(0xFF2E7D32),
+                    size: 22,
                   ),
                 ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // ============================================
-          // DIRECTIONS
-          // ============================================
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: ListTile(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-              tileColor: const Color(0xFFE8F5E9),
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
+                title: const Text(
+                  "Directions",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1B5E20),
+                  ),
                 ),
-                child: const Icon(
-                  Icons.directions,
+                trailing: const Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
                   color: Color(0xFF2E7D32),
-                  size: 22,
                 ),
+                onTap: () => onDrawerTap(0),
               ),
-              title: const Text(
-                "Directions",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1B5E20),
-                ),
-              ),
-              trailing: const Icon(
-                Icons.arrow_forward_ios,
-                size: 16,
-                color: Color(0xFF2E7D32),
-              ),
-              onTap: () => onDrawerTap(0),
             ),
-          ),
-
-          const SizedBox(height: 8),
-
-          // ============================================
-          // ABOUT US
-          // ============================================
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: ListTile(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-              tileColor: const Color(0xFFE8F5E9),
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: ListTile(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(
-                  Icons.info_outline,
+                tileColor: const Color(0xFFE8F5E9),
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.info_outline,
+                    color: Color(0xFF2E7D32),
+                    size: 22,
+                  ),
+                ),
+                title: const Text(
+                  "About Us",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1B5E20),
+                  ),
+                ),
+                trailing: const Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
                   color: Color(0xFF2E7D32),
-                  size: 22,
                 ),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AboutUsScreen()),
+                  );
+                },
               ),
-              title: const Text(
-                "About Us",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1B5E20),
-                ),
-              ),
-              trailing: const Icon(
-                Icons.arrow_forward_ios,
-                size: 16,
-                color: Color(0xFF2E7D32),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AboutUsScreen()),
-                );
-              },
             ),
-          ),
-      
-   const Spacer(),
-          // ============================================
-          // FOOTER
-          // ============================================
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(Icons.eco, size: 16, color: Colors.green.shade300),
-                const SizedBox(width: 8),
-                const Text(
-                  "Smart Soil Analysis",
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(Icons.eco, size: 16, color: Colors.green.shade300),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "Smart Soil Analysis",
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
-  
+    );
+  }
+
+  // ============================================
+  // CONNECT CARD
+  // ============================================
   static Widget buildConnectCard(BuildContext context, DashboardLogic logic) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -326,15 +319,22 @@ static Widget buildDrawer(BuildContext context, DashboardLogic logic, Function(i
         ),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 32,
-              backgroundColor: Colors.green.shade50,
-              child: Image.asset(
-                "images/sensor_device.png",
-                width: 40,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(Icons.sensors, size: 30, color: Colors.green);
-                },
+            // SENSOR DEVICE — green circle background, mas malaki
+            Container(
+              width: 72,
+              height: 72,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE8F5E9),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Image.asset(
+                  "images/sensor_device.png",
+                  width: 46,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.sensors, size: 36, color: Colors.green);
+                  },
+                ),
               ),
             ),
             const SizedBox(width: 14),
@@ -368,10 +368,12 @@ static Widget buildDrawer(BuildContext context, DashboardLogic logic, Function(i
                         SizedBox(
                           width: 12,
                           height: 12,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.blue),
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.blue),
                         ),
                         SizedBox(width: 6),
-                        Text('Scanning...', style: TextStyle(fontSize: 10, color: Colors.blue)),
+                        Text('Scanning...',
+                            style: TextStyle(fontSize: 10, color: Colors.blue)),
                       ],
                     ),
                   ],
@@ -389,22 +391,27 @@ static Widget buildDrawer(BuildContext context, DashboardLogic logic, Function(i
             if (logic.isConnected)
               TextButton(
                 onPressed: logic.disconnect,
-                child: const Text("Disconnect", style: TextStyle(color: Colors.red, fontSize: 12)),
+                child: const Text("Disconnect",
+                    style: TextStyle(color: Colors.red, fontSize: 12)),
               )
             else
               ElevatedButton.icon(
-                onPressed: logic.isLoading || logic.isScanning ? null : logic.connectToDevice,
+                onPressed:
+                    logic.isLoading || logic.isScanning ? null : logic.connectToDevice,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25)),
                 ),
                 icon: logic.isLoading
                     ? const SizedBox(
                         width: 14,
                         height: 14,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
                       )
                     : const Icon(Icons.bluetooth, size: 16),
                 label: logic.isLoading
@@ -474,11 +481,15 @@ static Widget buildDrawer(BuildContext context, DashboardLogic logic, Function(i
                 maxValue: 100,
                 status: logic.currentReading != null
                     ? DashboardHelpers.getStatusName(
-                        DashboardHelpers.getStatusN(int.tryParse(logic.currentReading!.nitrogen) ?? 0), '')
+                        DashboardHelpers.getStatusN(
+                            int.tryParse(logic.currentReading!.nitrogen) ?? 0),
+                        '')
                     : '--',
                 statusColor: logic.currentReading != null
                     ? DashboardHelpers.getStatusColor(
-                        DashboardHelpers.getStatusN(int.tryParse(logic.currentReading!.nitrogen) ?? 0), '')
+                        DashboardHelpers.getStatusN(
+                            int.tryParse(logic.currentReading!.nitrogen) ?? 0),
+                        '')
                     : Colors.grey,
               ),
               const SizedBox(width: 12),
@@ -492,11 +503,15 @@ static Widget buildDrawer(BuildContext context, DashboardLogic logic, Function(i
                 maxValue: 100,
                 status: logic.currentReading != null
                     ? DashboardHelpers.getStatusName(
-                        DashboardHelpers.getStatusP(int.tryParse(logic.currentReading!.phosphorus) ?? 0), '')
+                        DashboardHelpers.getStatusP(
+                            int.tryParse(logic.currentReading!.phosphorus) ?? 0),
+                        '')
                     : '--',
                 statusColor: logic.currentReading != null
                     ? DashboardHelpers.getStatusColor(
-                        DashboardHelpers.getStatusP(int.tryParse(logic.currentReading!.phosphorus) ?? 0), '')
+                        DashboardHelpers.getStatusP(
+                            int.tryParse(logic.currentReading!.phosphorus) ?? 0),
+                        '')
                     : Colors.grey,
               ),
             ],
@@ -514,11 +529,15 @@ static Widget buildDrawer(BuildContext context, DashboardLogic logic, Function(i
                 maxValue: 100,
                 status: logic.currentReading != null
                     ? DashboardHelpers.getStatusName(
-                        DashboardHelpers.getStatusK(int.tryParse(logic.currentReading!.potassium) ?? 0), '')
+                        DashboardHelpers.getStatusK(
+                            int.tryParse(logic.currentReading!.potassium) ?? 0),
+                        '')
                     : '--',
                 statusColor: logic.currentReading != null
                     ? DashboardHelpers.getStatusColor(
-                        DashboardHelpers.getStatusK(int.tryParse(logic.currentReading!.potassium) ?? 0), '')
+                        DashboardHelpers.getStatusK(
+                            int.tryParse(logic.currentReading!.potassium) ?? 0),
+                        '')
                     : Colors.grey,
               ),
               const SizedBox(width: 12),
@@ -532,11 +551,15 @@ static Widget buildDrawer(BuildContext context, DashboardLogic logic, Function(i
                 maxValue: 14,
                 status: logic.currentReading != null
                     ? DashboardHelpers.getStatusName(
-                        DashboardHelpers.getStatusPh(double.tryParse(logic.currentReading!.ph) ?? 0.0), 'ph')
+                        DashboardHelpers.getStatusPh(
+                            double.tryParse(logic.currentReading!.ph) ?? 0.0),
+                        'ph')
                     : '--',
                 statusColor: logic.currentReading != null
                     ? DashboardHelpers.getStatusColor(
-                        DashboardHelpers.getStatusPh(double.tryParse(logic.currentReading!.ph) ?? 0.0), 'ph')
+                        DashboardHelpers.getStatusPh(
+                            double.tryParse(logic.currentReading!.ph) ?? 0.0),
+                        'ph')
                     : Colors.grey,
               ),
             ],
@@ -703,13 +726,25 @@ static Widget buildDrawer(BuildContext context, DashboardLogic logic, Function(i
           ],
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset(
-              "images/leaf.png",
-              width: 60,
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(Icons.eco, size: 44, color: Colors.green);
-              },
+            // LEAF — may green circle background
+            Container(
+              width: 72,
+              height: 72,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE8F5E9),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Image.asset(
+                  "images/leaf.png",
+                  width: 42,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.eco, size: 36, color: Colors.green);
+                  },
+                ),
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -739,15 +774,17 @@ static Widget buildDrawer(BuildContext context, DashboardLogic logic, Function(i
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: (logic.isConnected && logic.currentReading != null)
-                          ? logic.getRecommendation
-                          : null,
+                      onPressed:
+                          (logic.isConnected && logic.currentReading != null)
+                              ? logic.getRecommendation
+                              : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
                         disabledBackgroundColor: Colors.green.shade300,
                         disabledForegroundColor: Colors.white70,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(25),
                         ),
@@ -756,14 +793,16 @@ static Widget buildDrawer(BuildContext context, DashboardLogic logic, Function(i
                           ? const SizedBox(
                               width: 16,
                               height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white),
                             )
                           : const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text("Get Recommendation", style: TextStyle(fontSize: 13)),
-                                SizedBox(width: 6),
-                                Icon(Icons.arrow_forward_ios, size: 13),
+                                Text("Get Recommendation",
+                                    style: TextStyle(fontSize: 14)),
+                                SizedBox(width: 8),
+                                Icon(Icons.arrow_forward_ios, size: 14),
                               ],
                             ),
                     ),
@@ -772,11 +811,12 @@ static Widget buildDrawer(BuildContext context, DashboardLogic logic, Function(i
               ),
             ),
             const SizedBox(width: 10),
+            // FERTILIZER — mas malaki
             Image.asset(
               "images/fertilizer.png",
-              width: 50,
+              width: 60,
               errorBuilder: (context, error, stackTrace) {
-                return const Icon(Icons.science, size: 36, color: Colors.blue);
+                return const Icon(Icons.science, size: 44, color: Colors.blue);
               },
             ),
           ],
