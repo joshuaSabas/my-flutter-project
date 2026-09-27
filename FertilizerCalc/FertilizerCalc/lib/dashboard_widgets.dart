@@ -134,93 +134,113 @@ class DashboardWidgets {
   // DRAWER
   // ============================================
   static Widget buildDrawer(
-    BuildContext context,
-    DashboardLogic logic,
-    Function(int) onDrawerTap,
-  ) {
-    return Drawer(
-      child: Container(
-        color: Colors.white,
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 50, 20, 25),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+  BuildContext context,
+  DashboardLogic logic,
+  Function(int) onDrawerTap,
+) {
+  return Drawer(
+    child: Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          // ============================================
+          // HEADER — GREEN
+          // ============================================
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(20, 50, 20, 25),
+            color: const Color(0xFF2E7D32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "FertilizerCalc",
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "FertilizerCalc",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                const SizedBox(height: 2),
+                const Text(
+                  "v1.0.0",
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white70,
                   ),
-                  const SizedBox(height: 2),
-                  const Text(
-                    "v1.0.0",
-                    style: TextStyle(fontSize: 13, color: Colors.white70),
+                ),
+                const SizedBox(height: 14),
+                // SENSOR STATUS CHIP — BLACK
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.bluetooth,
-                          size: 16,
-                          color: logic.isConnected
-                              ? Colors.greenAccent
-                              : Colors.white70,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 12,
+                        height: 12,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          logic.isConnected ? "Sensor Connected" : "No Sensor",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: logic.isConnected
-                                ? Colors.greenAccent
-                                : Colors.white70,
-                            fontWeight: FontWeight.w500,
-                          ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        logic.isConnected ? "Sensor Connected" : "No Sensor",
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  "Smart Soil Analysis &\nFertilizer Recommendation",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white70,
+                    height: 1.4,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+          ),
+
+          const SizedBox(height: 20),
+
+          // ============================================
+          // DIRECTIONS
+          // ============================================
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F5E9),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFA5D6A7), width: 1),
+              ),
               child: ListTile(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
-                tileColor: const Color(0xFFE8F5E9),
                 leading: Container(
-                  padding: const EdgeInsets.all(8),
+                  width: 40,
+                  height: 40,
                   decoration: const BoxDecoration(
-                    color: Colors.white,
+                    color: Color(0xFF2E7D32),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.directions,
-                    color: Color(0xFF2E7D32),
+                    color: Colors.white,
                     size: 22,
                   ),
                 ),
@@ -229,34 +249,46 @@ class DashboardWidgets {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1B5E20),
+                    color: Colors.black87,
                   ),
                 ),
                 trailing: const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
+                  Icons.chevron_right,
                   color: Color(0xFF2E7D32),
+                  size: 24,
                 ),
                 onTap: () => onDrawerTap(0),
               ),
             ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+          ),
+
+          const SizedBox(height: 12),
+
+          // ============================================
+          // ABOUT US
+          // ============================================
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFE3F2FD),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFF90CAF9), width: 1),
+              ),
               child: ListTile(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
-                tileColor: const Color(0xFFE8F5E9),
                 leading: Container(
-                  padding: const EdgeInsets.all(8),
+                  width: 40,
+                  height: 40,
                   decoration: const BoxDecoration(
-                    color: Colors.white,
+                    color: Color(0xFF1565C0),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.info_outline,
-                    color: Color(0xFF2E7D32),
+                    color: Colors.white,
                     size: 22,
                   ),
                 ),
@@ -265,13 +297,13 @@ class DashboardWidgets {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1B5E20),
+                    color: Colors.black87,
                   ),
                 ),
                 trailing: const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: Color(0xFF2E7D32),
+                  Icons.chevron_right,
+                  color: Color(0xFF1565C0),
+                  size: 24,
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -282,25 +314,31 @@ class DashboardWidgets {
                 },
               ),
             ),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Icon(Icons.eco, size: 16, color: Colors.green.shade300),
-                  const SizedBox(width: 8),
-                  const Text(
-                    "Smart Soil Analysis",
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
+          ),
+
+          const Spacer(),
+
+          // ============================================
+          // FOOTER
+          // ============================================
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(Icons.eco, size: 16, color: Colors.green.shade300),
+                const SizedBox(width: 8),
+                const Text(
+                  "Smart Soil Analysis",
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ============================================
   // CONNECT CARD
