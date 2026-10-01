@@ -30,7 +30,6 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
   Map<String, dynamic>? _recommendationResult;
   StreamSubscription<List<int>>? _sensorSubscription;
 
-  // CALLBACK para i-refresh ang History screen pag na-save
   VoidCallback? onHistorySaved;
 
   bool get isConnected => _isConnected;
@@ -250,7 +249,6 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
       if (reading != null) {
         _currentReading = reading;
         _errorMessage = '';
-        // WALANG AUTO-SAVE DITO. Manual na pag-save sa recommendation dialog.
         _saveState();
         notifyListeners();
       }
@@ -420,266 +418,404 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
     final imageUrl = result['image'] ?? '';
     final googleSearch = result['google_search'] ?? '';
     final alternative = result['alternative'] ?? 'N/A';
-    final amount = result['amount'] ?? 'N/A';
-    final applicationRate = result['application_rate'] ?? '';
+    final rawAmount = result['amount'] ?? 'N/A';
+    final rawApplicationRate = result['application_rate'] ?? '';
     final modeOfApplication = result['mode_of_application'] ?? '';
     final applicationTiming = result['application_timing'] ?? '';
+
+    const List<double> areaOptions = [1, 5, 10, 20, 50, 100, 500, 1000, 10000];
 
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-          child: Container(
-            constraints: const BoxConstraints(maxHeight: 720),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(28),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // HEADER
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2E7D32),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.green.withOpacity(0.3),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
+        double selectedAreaSqm = 100.0;
+        bool hasSelectedArea = false;
+
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            final displayAmount = hasSelectedArea
+                ? _convertRate(rawAmount, selectedAreaSqm)
+                : rawAmount;
+            final displayRate = hasSelectedArea
+                ? _convertRate(rawApplicationRate, selectedAreaSqm)
+                : rawApplicationRate;
+
+            return Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              child: Container(
+                constraints: const BoxConstraints(maxHeight: 760),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // HEADER
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 52,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF2E7D32),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.green.withOpacity(0.3),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
+                            child: const Icon(Icons.eco, color: Colors.white, size: 28),
+                          ),
+                          const SizedBox(width: 14),
+                          const Expanded(
+                            child: Text(
+                              "Fertilizer\nRecommendation",
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1B5E20),
+                                height: 1.2,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => Navigator.pop(dialogContext),
+                            icon: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade200,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.close, size: 20, color: Colors.black54),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // SCROLLABLE CONTENT
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // PLOT SIZE SELECTOR
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF5F7FA),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF2E7D32).withOpacity(0.12),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Icon(
+                                      Icons.square_foot,
+                                      color: Color(0xFF2E7D32),
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Expanded(
+                                    child: Text(
+                                      "Plot Size",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF333333),
+                                      ),
+                                    ),
+                                  ),
+                                  DropdownButton<double>(
+                                    value: selectedAreaSqm,
+                                    underline: const SizedBox.shrink(),
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF2E7D32),
+                                    ),
+                                    items: areaOptions.map((area) {
+                                      final label = area >= 10000
+                                          ? '${(area / 10000).toStringAsFixed(0)} ha'
+                                          : '${area.toStringAsFixed(0)} sqm';
+                                      return DropdownMenuItem<double>(
+                                        value: area,
+                                        child: Text(label),
+                                      );
+                                    }).toList(),
+                                    onChanged: (value) {
+                                      if (value != null) {
+                                        setStateDialog(() {
+                                          selectedAreaSqm = value;
+                                          hasSelectedArea = true;
+                                        });
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+
+                            _buildRecommendationCard(
+                              label: "RECOMMENDED FERTILIZER",
+                              labelColor: const Color(0xFF2E7D32),
+                              bgColor: const Color(0xFFE8F5E9),
+                              borderColor: const Color(0xFFA5D6A7),
+                              iconBgColor: const Color(0xFF2E7D32),
+                              icon: Icons.eco,
+                              value: fertilizer,
+                              onTap: googleSearch.isNotEmpty
+                                  ? () => launchGoogleSearch(googleSearch)
+                                  : null,
+                            ),
+                            const SizedBox(height: 12),
+                            _buildRecommendationCard(
+                              label: "ALTERNATIVE FERTILIZER",
+                              labelColor: const Color(0xFFE65100),
+                              bgColor: const Color(0xFFFFF3E0),
+                              borderColor: const Color(0xFFFFCC80),
+                              iconBgColor: const Color(0xFFFB8C00),
+                              icon: Icons.shopping_bag,
+                              value: alternative,
+                              onTap: (alternative != 'N/A' && alternative.isNotEmpty)
+                                  ? () {
+                                      final altSearch =
+                                          'https://www.google.com/search?q=${Uri.encodeComponent(alternative + " fertilizer")}&tbm=isch';
+                                      launchGoogleSearch(altSearch);
+                                    }
+                                  : null,
+                            ),
+                            const SizedBox(height: 12),
+                            _buildRecommendationCard(
+                              label: "RECOMMENDED AMOUNT",
+                              labelColor: const Color(0xFF2E7D32),
+                              bgColor: const Color(0xFFE8F5E9),
+                              borderColor: const Color(0xFFA5D6A7),
+                              iconBgColor: const Color(0xFF2E7D32),
+                              icon: Icons.scale,
+                              value: displayAmount,
+                              showArrow: false,
+                            ),
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF5F7FA),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "APPLICATION DETAILS",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF555555),
+                                      letterSpacing: 0.8,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 14),
+                                  _buildAppDetailRow(
+                                    icon: Icons.scale,
+                                    iconColor: const Color(0xFF2E7D32),
+                                    iconBg: const Color(0xFFE8F5E9),
+                                    label: "APPLICATION RATE",
+                                    labelColor: const Color(0xFF2E7D32),
+                                    value: displayRate.isNotEmpty ? displayRate : 'N/A',
+                                  ),
+                                  Divider(height: 24, color: Colors.grey.shade300),
+                                  _buildAppDetailRow(
+                                    icon: Icons.water_drop,
+                                    iconColor: const Color(0xFF1565C0),
+                                    iconBg: const Color(0xFFE3F2FD),
+                                    label: "MODE OF APPLICATION",
+                                    labelColor: const Color(0xFF1565C0),
+                                    value: modeOfApplication.isNotEmpty ? modeOfApplication : 'N/A',
+                                  ),
+                                  Divider(height: 24, color: Colors.grey.shade300),
+                                  _buildAppDetailRow(
+                                    icon: Icons.calendar_month,
+                                    iconColor: const Color(0xFF6A1B9A),
+                                    iconBg: const Color(0xFFF3E5F5),
+                                    label: "APPLICATION TIMING",
+                                    labelColor: const Color(0xFF6A1B9A),
+                                    value: applicationTiming.isNotEmpty ? applicationTiming : 'N/A',
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 20),
                           ],
                         ),
-                        child: const Icon(Icons.eco, color: Colors.white, size: 28),
                       ),
-                      const SizedBox(width: 14),
-                      const Expanded(
-                        child: Text(
-                          "Fertilizer\nRecommendation",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1B5E20),
-                            height: 1.2,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => Navigator.pop(dialogContext),
-                        icon: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.close, size: 20, color: Colors.black54),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
 
-                // SCROLLABLE CONTENT
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildRecommendationCard(
-                          label: "RECOMMENDED FERTILIZER",
-                          labelColor: const Color(0xFF2E7D32),
-                          bgColor: const Color(0xFFE8F5E9),
-                          borderColor: const Color(0xFFA5D6A7),
-                          iconBgColor: const Color(0xFF2E7D32),
-                          icon: Icons.eco,
-                          value: fertilizer,
-                          onTap: googleSearch.isNotEmpty
-                              ? () => launchGoogleSearch(googleSearch)
-                              : null,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildRecommendationCard(
-                          label: "ALTERNATIVE FERTILIZER",
-                          labelColor: const Color(0xFFE65100),
-                          bgColor: const Color(0xFFFFF3E0),
-                          borderColor: const Color(0xFFFFCC80),
-                          iconBgColor: const Color(0xFFFB8C00),
-                          icon: Icons.shopping_bag,
-                          value: alternative,
-                          onTap: (alternative != 'N/A' && alternative.isNotEmpty)
-                              ? () {
-                                  final altSearch =
-                                      'https://www.google.com/search?q=${Uri.encodeComponent(alternative + " fertilizer")}&tbm=isch';
-                                  launchGoogleSearch(altSearch);
+                    // BOTTOM BUTTONS
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () async {
+                                if (_currentReading == null || _recommendationResult == null) {
+                                  return;
                                 }
-                              : null,
-                        ),
-                        const SizedBox(height: 12),
-                        _buildRecommendationCard(
-                          label: "RECOMMENDED AMOUNT",
-                          labelColor: const Color(0xFF2E7D32),
-                          bgColor: const Color(0xFFE8F5E9),
-                          borderColor: const Color(0xFFA5D6A7),
-                          iconBgColor: const Color(0xFF2E7D32),
-                          icon: Icons.scale,
-                          value: amount,
-                          showArrow: false,
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF5F7FA),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "APPLICATION DETAILS",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF555555),
-                                  letterSpacing: 0.8,
+                                try {
+                                  final reading = SensorReading(
+                                    nitrogen: _currentReading!.nitrogen,
+                                    phosphorus: _currentReading!.phosphorus,
+                                    potassium: _currentReading!.potassium,
+                                    ph: _currentReading!.ph,
+                                    timestamp: DateTime.now(),
+                                    fertilizerType: fertilizer,
+                                    fertilizerImageUrl: imageUrl,
+                                    alternativeType: alternative,
+                                    recommendedSacks: 0,
+                                    amount: displayAmount,
+                                    npkAnalysis: '',
+                                    googleSearchUrl: googleSearch,
+                                    applicationRate: displayRate,
+                                    modeOfApplication: modeOfApplication,
+                                    applicationTiming: applicationTiming,
+                                    plotSize: hasSelectedArea ? selectedAreaSqm : null,
+                                  );
+                                  await DatabaseHelper().insertRecommendation(reading);
+
+                                  onHistorySaved?.call();
+
+                                  if (dialogContext.mounted) {
+                                    Navigator.pop(dialogContext);
+                                  }
+
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('✅ Saved to history!'),
+                                        backgroundColor: Colors.green,
+                                        duration: Duration(seconds: 2),
+                                        behavior: SnackBarBehavior.floating,
+                                        margin: EdgeInsets.all(16),
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  debugPrint('Error saving to history: $e');
+                                }
+                              },
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF2E7D32),
+                                side: const BorderSide(color: Color(0xFF2E7D32), width: 1.5),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
                                 ),
                               ),
-                              const SizedBox(height: 14),
-                              _buildAppDetailRow(
-                                icon: Icons.scale,
-                                iconColor: const Color(0xFF2E7D32),
-                                iconBg: const Color(0xFFE8F5E9),
-                                label: "APPLICATION RATE",
-                                labelColor: const Color(0xFF2E7D32),
-                                value: applicationRate.isNotEmpty ? applicationRate : 'N/A',
+                              icon: const Icon(Icons.bookmark_border, size: 20),
+                              label: const Text(
+                                "Save in History",
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                               ),
-                              Divider(height: 24, color: Colors.grey.shade300),
-                              _buildAppDetailRow(
-                                icon: Icons.water_drop,
-                                iconColor: const Color(0xFF1565C0),
-                                iconBg: const Color(0xFFE3F2FD),
-                                label: "MODE OF APPLICATION",
-                                labelColor: const Color(0xFF1565C0),
-                                value: modeOfApplication.isNotEmpty ? modeOfApplication : 'N/A',
-                              ),
-                              Divider(height: 24, color: Colors.grey.shade300),
-                              _buildAppDetailRow(
-                                icon: Icons.calendar_month,
-                                iconColor: const Color(0xFF6A1B9A),
-                                iconBg: const Color(0xFFF3E5F5),
-                                label: "APPLICATION TIMING",
-                                labelColor: const Color(0xFF6A1B9A),
-                                value: applicationTiming.isNotEmpty ? applicationTiming : 'N/A',
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () => Navigator.pop(dialogContext),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF43A047),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                elevation: 4,
+                                shadowColor: Colors.green.withOpacity(0.4),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                              icon: const Icon(Icons.check, size: 20),
+                              label: const Text(
+                                "Got it",
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-
-                // BOTTOM BUTTONS
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () async {
-                            if (_currentReading == null || _recommendationResult == null) {
-                              return;
-                            }
-                            try {
-                              final reading = SensorReading(
-                                nitrogen: _currentReading!.nitrogen,
-                                phosphorus: _currentReading!.phosphorus,
-                                potassium: _currentReading!.potassium,
-                                ph: _currentReading!.ph,
-                                timestamp: DateTime.now(),
-                                fertilizerType: fertilizer,
-                                fertilizerImageUrl: imageUrl,
-                                alternativeType: alternative,
-                                recommendedSacks: 0,
-                                amount: amount,
-                                npkAnalysis: '',
-                                googleSearchUrl: googleSearch,
-                                applicationRate: applicationRate,
-                                modeOfApplication: modeOfApplication,
-                                applicationTiming: applicationTiming,
-                              );
-                              await DatabaseHelper().insertRecommendation(reading);
-                              onHistorySaved?.call();
-                              if (dialogContext.mounted) {
-                                ScaffoldMessenger.of(dialogContext).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('✅ Saved to history!'),
-                                    backgroundColor: Colors.green,
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                              }
-                            } catch (e) {
-                              debugPrint('Error saving to history: $e');
-                            }
-                          },
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF2E7D32),
-                            side: const BorderSide(color: Color(0xFF2E7D32), width: 1.5),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                          icon: const Icon(Icons.bookmark_border, size: 20),
-                          label: const Text(
-                            "Save in History",
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => Navigator.pop(dialogContext),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF43A047),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            elevation: 4,
-                            shadowColor: Colors.green.withOpacity(0.4),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                          icon: const Icon(Icons.check, size: 20),
-                          label: const Text(
-                            "Got it",
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
+  }
+
+  // HELPER: Rate conversion
+  String _convertRate(String rawRate, double areaSqm) {
+    if (rawRate.isEmpty || rawRate == 'N/A') return rawRate;
+    if (areaSqm >= 10000) return rawRate;
+
+    final factor = areaSqm / 10000.0;
+
+    final numberPattern = RegExp(r'\d+(?:\.\d+)?');
+    final matches = numberPattern.allMatches(rawRate).toList();
+
+    if (matches.isEmpty) return rawRate;
+
+    String converted = rawRate;
+    bool useGrams = false;
+
+    for (int i = matches.length - 1; i >= 0; i--) {
+      final match = matches[i];
+      final originalValue = double.parse(match.group(0)!);
+      final convertedValue = originalValue * factor;
+
+      String formattedValue;
+      if (convertedValue >= 10) {
+        formattedValue = convertedValue.toStringAsFixed(0);
+      } else if (convertedValue >= 1) {
+        formattedValue = convertedValue.toStringAsFixed(1);
+      } else if (convertedValue >= 0.01) {
+        formattedValue = convertedValue.toStringAsFixed(2);
+      } else {
+        final grams = convertedValue * 1000;
+        if (grams >= 1) {
+          formattedValue = '${grams.toStringAsFixed(0)} g';
+          useGrams = true;
+        } else {
+          formattedValue = convertedValue.toStringAsFixed(4);
+        }
+      }
+
+      converted = converted.replaceRange(match.start, match.end, formattedValue);
+    }
+
+    converted = converted.replaceAll('kg/ha', useGrams ? 'g' : 'kg');
+    converted = converted.replaceAll('/ha', '');
+    converted = converted.replaceAll('kg', useGrams ? 'g' : 'kg');
+    converted = converted.replaceAll('gg', 'g');
+
+    return '$converted (for ${areaSqm.toStringAsFixed(0)} sqm)';
   }
 
   // HELPER: Recommendation card
@@ -802,7 +938,10 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
     );
   }
 
-    void showMoistureReminderDialog() {
+  // ============================================
+  // MOISTURE REMINDER DIALOG
+  // ============================================
+  void showMoistureReminderDialog() {
     showDialog<void>(
       context: context,
       builder: (dialogContext) {
@@ -812,7 +951,6 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // HEADER — BLUE with water drop icon
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
@@ -852,8 +990,6 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                   ],
                 ),
               ),
-
-              // BODY — info boxes
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
                 child: Column(
@@ -884,8 +1020,6 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                   ],
                 ),
               ),
-
-              // BOTTOM — Got it button
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                 child: Align(
@@ -919,7 +1053,6 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
     );
   }
 
-  // HELPER: Reminder box — NASA LOOB ng class
   Widget _buildReminderBox({
     required IconData icon,
     required Color iconColor,
