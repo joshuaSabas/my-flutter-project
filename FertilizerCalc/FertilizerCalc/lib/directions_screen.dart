@@ -36,6 +36,14 @@ class _DirectionsScreenState extends State<DirectionsScreen> {
       bottomText: 'Make sure your soil sensor is powered on before connecting.',
     ),
     _DirectionData(
+      title: 'Select "Soil Sensor" Device',
+      description:
+          'From the list of available Bluetooth devices, tap your soil sensor to pair it with the app.',
+      image: 'images/device_direction.png',
+      bottomText:
+          'Choose the correct soil sensor device from the list to start receiving data.',
+    ),
+    _DirectionData(
       title: 'Get Fertilizer Recommendation',
       description:
           'After connecting the soil sensor and receiving the soil data, tap Get Recommendation.',
@@ -76,9 +84,7 @@ class _DirectionsScreenState extends State<DirectionsScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // ============================================================
             // HEADER
-            // ============================================================
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 12, 4),
               child: Row(
@@ -130,9 +136,7 @@ class _DirectionsScreenState extends State<DirectionsScreen> {
 
             const SizedBox(height: 8),
 
-            // ============================================================
             // PAGE VIEW
-            // ============================================================
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -145,14 +149,13 @@ class _DirectionsScreenState extends State<DirectionsScreen> {
                 itemBuilder: (context, index) {
                   return _DirectionPage(
                     data: _directions[index],
+                    stepNumber: index + 1,
                   );
                 },
               ),
             ),
 
-            // ============================================================
             // PAGE INDICATORS
-            // ============================================================
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
@@ -178,9 +181,7 @@ class _DirectionsScreenState extends State<DirectionsScreen> {
 
             const SizedBox(height: 10),
 
-            // ============================================================
             // LEFT / RIGHT NAVIGATION
-            // ============================================================
             Padding(
               padding: const EdgeInsets.fromLTRB(18, 0, 18, 15),
               child: Row(
@@ -224,9 +225,11 @@ class _DirectionsScreenState extends State<DirectionsScreen> {
 
 class _DirectionPage extends StatelessWidget {
   final _DirectionData data;
+  final int stepNumber;
 
   const _DirectionPage({
     required this.data,
+    required this.stepNumber,
   });
 
   @override
@@ -238,9 +241,7 @@ class _DirectionPage extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(18, 5, 18, 10),
           child: Column(
             children: [
-              // ============================================================
               // STEP TITLE
-              // ============================================================
               Row(
                 children: [
                   Container(
@@ -252,7 +253,7 @@ class _DirectionPage extends StatelessWidget {
                     ),
                     child: Center(
                       child: Text(
-                        _getStepNumber(data.title),
+                        stepNumber.toString(),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -279,9 +280,7 @@ class _DirectionPage extends StatelessWidget {
 
               const SizedBox(height: 10),
 
-              // ============================================================
               // DESCRIPTION
-              // ============================================================
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
@@ -308,9 +307,7 @@ class _DirectionPage extends StatelessWidget {
 
               const SizedBox(height: 14),
 
-              // ============================================================
-              // SCREENSHOT - WALANG ARROW!
-              // ============================================================
+              // SCREENSHOT
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(10),
@@ -354,9 +351,7 @@ class _DirectionPage extends StatelessWidget {
 
               const SizedBox(height: 14),
 
-              // ============================================================
               // BOTTOM TIP
-              // ============================================================
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
@@ -405,13 +400,6 @@ class _DirectionPage extends StatelessWidget {
       },
     );
   }
-
-  String _getStepNumber(String title) {
-    if (title.contains('Bluetooth')) return '1';
-    if (title.contains('Open')) return '2';
-    if (title.contains('Connect')) return '3';
-    return '4';
-  }
 }
 
 // ==========================================================================
@@ -455,7 +443,7 @@ class _NavigationButton extends StatelessWidget {
 }
 
 // ==========================================================================
-// DATA MODEL - WALANG ARROW!
+// DATA MODEL
 // ==========================================================================
 
 class _DirectionData {
