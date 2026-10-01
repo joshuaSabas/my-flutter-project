@@ -1,4 +1,4 @@
-  class SensorReading {
+class SensorReading {
   int? id;
   final String nitrogen;
   final String phosphorus;
@@ -14,11 +14,11 @@
   String? amount;
   String? npkAnalysis;
 
-  // BAGONG FIELDS
   String? googleSearchUrl;
   String? applicationRate;
   String? modeOfApplication;
   String? applicationTiming;
+  double? plotSize; // NULL kung hindi nag-select
 
   SensorReading({
     this.id,
@@ -38,6 +38,7 @@
     this.applicationRate,
     this.modeOfApplication,
     this.applicationTiming,
+    this.plotSize,
   });
 
   factory SensorReading.fromJson(Map<String, dynamic> json) {
@@ -59,6 +60,7 @@
       applicationRate: json['applicationRate'],
       modeOfApplication: json['modeOfApplication'],
       applicationTiming: json['applicationTiming'],
+      plotSize: json['plotSize'] == null ? null : (json['plotSize'] as num).toDouble(),
     );
   }
 
@@ -81,6 +83,7 @@
       'applicationRate': applicationRate,
       'modeOfApplication': modeOfApplication,
       'applicationTiming': applicationTiming,
+      'plotSize': plotSize,
     };
   }
 
@@ -103,6 +106,7 @@
       applicationRate: map['applicationRate'] ?? '',
       modeOfApplication: map['modeOfApplication'] ?? '',
       applicationTiming: map['applicationTiming'] ?? '',
+      plotSize: map['plotSize'] == null ? null : (map['plotSize'] as num).toDouble(),
     );
   }
 
@@ -125,6 +129,7 @@
       'applicationRate': applicationRate ?? '',
       'modeOfApplication': modeOfApplication ?? '',
       'applicationTiming': applicationTiming ?? '',
+      'plotSize': plotSize,
     };
   }
 }
