@@ -28,11 +28,11 @@ class DatabaseHelper {
       'recommendedSacks': reading.recommendedSacks ?? 0,
       'amount': reading.amount ?? '',
       'npkAnalysis': reading.npkAnalysis ?? '',
-      // BAGONG FIELDS
       'googleSearchUrl': reading.googleSearchUrl ?? '',
       'applicationRate': reading.applicationRate ?? '',
       'modeOfApplication': reading.modeOfApplication ?? '',
       'applicationTiming': reading.applicationTiming ?? '',
+      'plotSize': reading.plotSize, // NULL kung hindi nag-select
     };
 
     existing.add(jsonEncode(data));
@@ -62,11 +62,11 @@ class DatabaseHelper {
           recommendedSacks: data['recommendedSacks'] ?? 0,
           amount: data['amount'] ?? '',
           npkAnalysis: data['npkAnalysis'] ?? '',
-          // BAGONG FIELDS
           googleSearchUrl: data['googleSearchUrl'] ?? '',
           applicationRate: data['applicationRate'] ?? '',
           modeOfApplication: data['modeOfApplication'] ?? '',
           applicationTiming: data['applicationTiming'] ?? '',
+          plotSize: data['plotSize'] == null ? null : (data['plotSize'] as num).toDouble(),
         ));
       } catch (e) {}
     }
@@ -150,6 +150,7 @@ class DatabaseHelper {
           applicationRate: data['applicationRate'] ?? '',
           modeOfApplication: data['modeOfApplication'] ?? '',
           applicationTiming: data['applicationTiming'] ?? '',
+          plotSize: data['plotSize'] == null ? null : (data['plotSize'] as num).toDouble(),
         );
       }
     }
