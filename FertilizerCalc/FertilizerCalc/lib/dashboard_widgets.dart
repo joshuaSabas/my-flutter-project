@@ -134,211 +134,207 @@ class DashboardWidgets {
   // DRAWER
   // ============================================
   static Widget buildDrawer(
-  BuildContext context,
-  DashboardLogic logic,
-  Function(int) onDrawerTap,
-) {
-  return Drawer(
-    child: Container(
-      color: Colors.white,
-      child: Column(
-        children: [
-          // ============================================
-          // HEADER — GREEN
-          // ============================================
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(20, 50, 20, 25),
-            color: const Color(0xFF2E7D32),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "FertilizerCalc",
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+    BuildContext context,
+    DashboardLogic logic,
+    Function(int) onDrawerTap,
+  ) {
+    return Drawer(
+      child: Container(
+        color: Colors.white,
+        child: Column(
+          children: [
+            // ============================================
+            // HEADER — GREEN
+            // ============================================
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 50, 20, 25),
+              color: const Color(0xFF2E7D32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // TEXT.PNG — walang literal na FertilizerCalc text
+                  Image.asset(
+                    "images/text.png",
+                    height: 32,
+                    fit: BoxFit.contain,
+                    alignment: Alignment.centerLeft,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Kung wala ang text.png, blangko na lang
+                      return const SizedBox.shrink();
+                    },
                   ),
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  "v1.0.0",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.white70,
+                  const SizedBox(height: 4),
+                  const Text(
+                    "v1.0.0",
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white70,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 14),
-                // SENSOR STATUS CHIP — BLACK
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 12,
-                        height: 12,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
+                  const SizedBox(height: 14),
+                  // SENSOR STATUS CHIP — BLACK
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 12,
+                          height: 12,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        logic.isConnected ? "Sensor Connected" : "No Sensor",
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                        const SizedBox(width: 8),
+                        Text(
+                          logic.isConnected
+                              ? "Sensor Connected"
+                              : "No Sensor",
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  "Smart Soil Analysis &\nFertilizer Recommendation",
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white70,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // ============================================
-          // DIRECTIONS
-          // ============================================
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFE8F5E9),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFA5D6A7), width: 1),
+                ],
               ),
-              child: ListTile(
-                shape: RoundedRectangleBorder(
+            ),
+
+            const SizedBox(height: 20),
+
+            // ============================================
+            // DIRECTIONS
+            // ============================================
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
                   borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFA5D6A7), width: 1),
                 ),
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: const BoxDecoration(
+                child: ListTile(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  leading: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF2E7D32),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.directions,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                  title: const Text(
+                    "Directions",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right,
                     color: Color(0xFF2E7D32),
-                    shape: BoxShape.circle,
+                    size: 24,
                   ),
-                  child: const Icon(
-                    Icons.directions,
-                    color: Colors.white,
-                    size: 22,
-                  ),
+                  onTap: () => onDrawerTap(0),
                 ),
-                title: const Text(
-                  "Directions",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                trailing: const Icon(
-                  Icons.chevron_right,
-                  color: Color(0xFF2E7D32),
-                  size: 24,
-                ),
-                onTap: () => onDrawerTap(0),
               ),
             ),
-          ),
 
-          const SizedBox(height: 12),
+            const SizedBox(height: 12),
 
-          // ============================================
-          // ABOUT US
-          // ============================================
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFE3F2FD),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF90CAF9), width: 1),
-              ),
-              child: ListTile(
-                shape: RoundedRectangleBorder(
+            // ============================================
+            // ABOUT US
+            // ============================================
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE3F2FD),
                   borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFF90CAF9), width: 1),
                 ),
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: const BoxDecoration(
+                child: ListTile(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  leading: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF1565C0),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.info_outline,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                  title: const Text(
+                    "About Us",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right,
                     color: Color(0xFF1565C0),
-                    shape: BoxShape.circle,
+                    size: 24,
                   ),
-                  child: const Icon(
-                    Icons.info_outline,
-                    color: Colors.white,
-                    size: 22,
-                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AboutUsScreen()),
+                    );
+                  },
                 ),
-                title: const Text(
-                  "About Us",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                trailing: const Icon(
-                  Icons.chevron_right,
-                  color: Color(0xFF1565C0),
-                  size: 24,
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AboutUsScreen()),
-                  );
-                },
               ),
             ),
-          ),
 
-          const Spacer(),
+            const Spacer(),
 
-          // ============================================
-          // FOOTER
-          // ============================================
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(Icons.eco, size: 16, color: Colors.green.shade300),
-                const SizedBox(width: 8),
-                const Text(
-                  "Smart Soil Analysis",
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
+            // ============================================
+            // FOOTER
+            // ============================================
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(Icons.eco, size: 16, color: Colors.green.shade300),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "Smart Soil Analysis",
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   // ============================================
   // CONNECT CARD
@@ -362,7 +358,6 @@ class DashboardWidgets {
         ),
         child: Row(
           children: [
-            // SENSOR DEVICE — green circle background
             Container(
               width: 72,
               height: 72,
@@ -757,7 +752,7 @@ class DashboardWidgets {
   }
 
   // ============================================
-  // RECOMMENDATION CARD — BAGONG LAYOUT
+  // RECOMMENDATION CARD
   // ============================================
   static Widget buildRecommendationCard(
       BuildContext context, DashboardLogic logic) {
@@ -780,11 +775,9 @@ class DashboardWidgets {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ROW 1: leaf + title + fertilizer image
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // LEAF with green circle
                 Container(
                   width: 72,
                   height: 72,
@@ -804,7 +797,6 @@ class DashboardWidgets {
                   ),
                 ),
                 const SizedBox(width: 14),
-                // TITLE
                 const Expanded(
                   child: Text(
                     "Fertilizer\nRecommendation",
@@ -816,7 +808,6 @@ class DashboardWidgets {
                     ),
                   ),
                 ),
-                // FERTILIZER IMAGE
                 Image.asset(
                   "images/fertilizer.png",
                   width: 60,
@@ -828,7 +819,6 @@ class DashboardWidgets {
               ],
             ),
             const SizedBox(height: 12),
-            // DESCRIPTION
             Text(
               logic.isConnected && logic.currentReading != null
                   ? "Get personalized fertilizer recommendation based on real-time soil data."
@@ -840,7 +830,6 @@ class DashboardWidgets {
               ),
             ),
             const SizedBox(height: 16),
-            // FULL WIDTH BUTTON
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
