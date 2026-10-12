@@ -18,16 +18,24 @@
         android:name="android.hardware.bluetooth"
         android:required="true" />
 
-    <!-- PARA MAKA-OPEN NG BROWSER (Chrome, etc.) -->
+    <!-- PARA MAKA-OPEN NG BROWSER, GMAIL, AT IBA PA -->
     <queries>
+        <!-- Browser (https) -->
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="https" />
         </intent>
+        <!-- Browser (http) -->
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="http" />
         </intent>
+        <!-- Email (mailto) -->
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
+        <!-- Process text -->
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT" />
             <data android:mimeType="text/plain" />
