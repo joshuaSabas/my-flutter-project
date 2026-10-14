@@ -218,11 +218,11 @@ class DashboardWidgets {
 
                   // TEXT.PNG — nasa taas-kaliwa
                   Positioned(
-                    left: 20,
+                    left: 12,
                     top: 130,
                     child: Image.asset(
                       "images/text.png",
-                      height: 55,
+                      height: 42,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
                         return const SizedBox.shrink();
