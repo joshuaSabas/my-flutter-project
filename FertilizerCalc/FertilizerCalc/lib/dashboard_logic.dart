@@ -24,17 +24,20 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
   bool _isLoading = false;
   bool _isScanning = false;
   bool _isListening = false;
+  bool _isReconnecting = false; // BAGONG FLAG
   bool _rfLoaded = false;
   String _errorMessage = '';
   String _deviceName = '';
   Map<String, dynamic>? _recommendationResult;
   StreamSubscription<List<int>>? _sensorSubscription;
 
+  // CALLBACK para i-refresh ang History screen pag na-save
   VoidCallback? onHistorySaved;
 
   bool get isConnected => _isConnected;
   bool get isLoading => _isLoading;
   bool get isScanning => _isScanning;
+  bool get isReconnecting => _isReconnecting;
   String get errorMessage => _errorMessage;
   String get deviceName => _deviceName;
   SensorReading? get currentReading => _currentReading;
@@ -75,19 +78,36 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> _restoreState() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final reading = prefs.getString('dashboard_last_reading');
-      final recommendation = prefs.getString('dashboard_last_recommendation');
-      if (reading != null && reading.isNotEmpty) {
-        final decoded = jsonDecode(reading);
-        if (decoded is Map<String, dynamic>) _currentReading = SensorReading.fromMap(decoded);
-      }
-      if (recommendation != null && recommendation.isNotEmpty) {
-        final decoded = jsonDecode(recommendation);
-        if (decoded is Map<String, dynamic>) _recommendationResult = decoded;
-      }
+
+      // I-restore LANG ang connection status
       _isConnected = prefs.getBool('dashboard_isConnected') ?? false;
       _deviceName = prefs.getString('dashboard_deviceName') ?? '';
       _isScanning = prefs.getBool('dashboard_isScanning') ?? false;
+
+      // KUNG CONNECTED, i-restore ang reading at recommendation
+      if (_isConnected) {
+        final reading = prefs.getString('dashboard_last_reading');
+        final recommendation = prefs.getString('dashboard_last_recommendation');
+
+        if (reading != null && reading.isNotEmpty) {
+          final decoded = jsonDecode(reading);
+          if (decoded is Map<String, dynamic>) {
+            _currentReading = SensorReading.fromMap(decoded);
+          }
+        }
+
+        if (recommendation != null && recommendation.isNotEmpty) {
+          final decoded = jsonDecode(recommendation);
+          if (decoded is Map<String, dynamic>) {
+            _recommendationResult = decoded;
+          }
+        }
+      } else {
+        // KUNG DISCONNECTED, siguraduhing walang reading
+        _currentReading = null;
+        _recommendationResult = null;
+      }
+
       notifyListeners();
     } catch (e) {
       debugPrint('Error restoring state: $e');
@@ -99,8 +119,22 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
     await prefs.setBool('dashboard_isConnected', _isConnected);
     await prefs.setString('dashboard_deviceName', _deviceName);
     await prefs.setBool('dashboard_isScanning', _isScanning);
-    await prefs.setString('dashboard_last_reading', _currentReading == null ? '' : jsonEncode(_currentReading!.toMap()));
-    await prefs.setString('dashboard_last_recommendation', _recommendationResult == null ? '' : jsonEncode(_recommendationResult!));
+
+    // I-SAVE LANG ANG READING KUNG CONNECTED
+    if (_isConnected) {
+      await prefs.setString(
+          'dashboard_last_reading',
+          _currentReading == null ? '' : jsonEncode(_currentReading!.toMap()));
+      await prefs.setString(
+          'dashboard_last_recommendation',
+          _recommendationResult == null
+              ? ''
+              : jsonEncode(_recommendationResult!));
+    } else {
+      // KUNG DISCONNECTED, I-CLEAR ANG SAVED READING
+      await prefs.remove('dashboard_last_reading');
+      await prefs.remove('dashboard_last_recommendation');
+    }
   }
 
   Future<void> _clearState() async {
@@ -118,7 +152,8 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
   void onDrawerTap(int index) {
     if (index == 0) {
       Navigator.pop(context);
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const DirectionsScreen()));
+      Navigator.push(context,
+          MaterialPageRoute(builder: (_) => const DirectionsScreen()));
     }
   }
 
@@ -129,7 +164,9 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
     try {
       final enabled = await _bluetoothService.isBluetoothEnabled();
       _isConnected = _bluetoothService.isConnected;
-      if (!enabled) _errorMessage = 'Bluetooth is disabled. Please enable Bluetooth.';
+      if (!enabled) {
+        _errorMessage = 'Bluetooth is disabled. Please enable Bluetooth.';
+      }
       notifyListeners();
     } catch (e) {
       _errorMessage = 'Error checking Bluetooth status: $e';
@@ -208,7 +245,8 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
       barrierDismissible: false,
       builder: (dialogContext) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Row(
             children: [
               Icon(Icons.bluetooth_disabled, color: Colors.red),
@@ -256,12 +294,63 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
       _isListening = false;
       _errorMessage = 'Error reading data: $error';
       notifyListeners();
+      _attemptAutoReconnect();
     }, onDone: () {
       _isListening = false;
       _isConnected = false;
       _deviceName = '';
+      _currentReading = null;
+      _recommendationResult = null;
       notifyListeners();
+      _attemptAutoReconnect();
     });
+  }
+
+  // AUTO-RECONNECT HELPER
+  Future<void> _attemptAutoReconnect() async {
+    if (_isReconnecting) return;
+    _isReconnecting = true;
+
+    debugPrint('🔄 Attempting auto-reconnect...');
+
+    // Maghintay ng 3 seconds bago mag-retry
+    await Future.delayed(const Duration(seconds: 3));
+
+    // Kung naka-reconnect na (halimbawa: user manually connected), huwag ituloy
+    if (_isConnected) {
+      _isReconnecting = false;
+      return;
+    }
+
+    try {
+      final success = await _bluetoothService.autoReconnect();
+
+      if (success) {
+        debugPrint('✅ Auto-reconnect successful');
+        _isConnected = true;
+        _deviceName = _bluetoothService.connectedDeviceName ?? 'Soil Sensor';
+        _isReconnecting = false;
+        _errorMessage = '';
+        _startListeningForData();
+        notifyListeners();
+      } else {
+        debugPrint('❌ Auto-reconnect failed');
+        _isReconnecting = false;
+        _isConnected = false;
+        _deviceName = '';
+        _currentReading = null;
+        _recommendationResult = null;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('❌ Auto-reconnect error: $e');
+      _isReconnecting = false;
+      _isConnected = false;
+      _deviceName = '';
+      _currentReading = null;
+      _recommendationResult = null;
+      notifyListeners();
+    }
   }
 
   SensorReading? _parseSensorData(List<int> data) {
@@ -276,7 +365,9 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
         if (part.startsWith('N:')) n = part.substring(2).trim();
         if (part.startsWith('P:')) p = part.substring(2).trim();
         if (part.startsWith('K:')) k = part.substring(2).trim();
-        if (part.toLowerCase().startsWith('ph:')) ph = part.substring(3).trim();
+        if (part.toLowerCase().startsWith('ph:')) {
+          ph = part.substring(3).trim();
+        }
       }
     } else {
       final parts = message.split(',');
@@ -306,11 +397,17 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
     );
   }
 
+  // MANUAL DISCONNECT
   Future<void> disconnect() async {
     await _sensorSubscription?.cancel();
     _sensorSubscription = null;
     _isListening = false;
+    _isReconnecting = false;
+
+    // MANUAL DISCONNECT — i-clear ang last device para hindi mag-auto-reconnect
     _bluetoothService.disconnect();
+    _bluetoothService.clearLastDevice();
+
     _isConnected = false;
     _deviceName = '';
     _currentReading = null;
@@ -355,7 +452,9 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
       Map<String, dynamic>? rule;
       try {
         rule = rules.firstWhere(
-          (r) => (r['fertilizer'] ?? '').toString().trim().toLowerCase() == normalizedPrediction,
+          (r) =>
+              (r['fertilizer'] ?? '').toString().trim().toLowerCase() ==
+              normalizedPrediction,
         );
         debugPrint('✅ Exact match found: ${rule['fertilizer']}');
       } catch (e) {
@@ -365,7 +464,8 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
       if (rule == null) {
         debugPrint('⚠️ No exact match. Finding closest match...');
         for (final r in rules) {
-          final ruleName = (r['fertilizer'] ?? '').toString().trim().toLowerCase();
+          final ruleName =
+              (r['fertilizer'] ?? '').toString().trim().toLowerCase();
           if (ruleName.contains(normalizedPrediction) ||
               normalizedPrediction.contains(ruleName)) {
             rule = r;
@@ -376,7 +476,8 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
       }
 
       if (rule == null) {
-        debugPrint('⚠️ No match found. Using fallback: ${rules.first['fertilizer']}');
+        debugPrint(
+            '⚠️ No match found. Using fallback: ${rules.first['fertilizer']}');
         rule = rules.first;
       }
 
@@ -405,7 +506,8 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<List<Map<String, dynamic>>> _loadFertilizerRules() async {
-    final jsonString = await rootBundle.loadString('assets/fertilizer_rules.json');
+    final jsonString =
+        await rootBundle.loadString('assets/fertilizer_rules.json');
     final List<dynamic> data = json.decode(jsonString);
     return data.map((e) => Map<String, dynamic>.from(e)).toList();
   }
@@ -442,8 +544,10 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                 : rawApplicationRate;
 
             return Dialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-              insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28)),
+              insetPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
               child: Container(
                 constraints: const BoxConstraints(maxHeight: 760),
                 decoration: BoxDecoration(
@@ -472,7 +576,8 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                                 ),
                               ],
                             ),
-                            child: const Icon(Icons.eco, color: Colors.white, size: 28),
+                            child: const Icon(Icons.eco,
+                                color: Colors.white, size: 28),
                           ),
                           const SizedBox(width: 14),
                           const Expanded(
@@ -494,7 +599,8 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                                 color: Colors.grey.shade200,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.close, size: 20, color: Colors.black54),
+                              child: const Icon(Icons.close,
+                                  size: 20, color: Colors.black54),
                             ),
                           ),
                         ],
@@ -514,7 +620,8 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF5F7FA),
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: Colors.grey.shade300),
+                                border:
+                                    Border.all(color: Colors.grey.shade300),
                               ),
                               child: Row(
                                 children: [
@@ -522,7 +629,8 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                                     width: 40,
                                     height: 40,
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF2E7D32).withOpacity(0.12),
+                                      color: const Color(0xFF2E7D32)
+                                          .withOpacity(0.12),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: const Icon(
@@ -594,7 +702,8 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                               iconBgColor: const Color(0xFFFB8C00),
                               icon: Icons.shopping_bag,
                               value: alternative,
-                              onTap: (alternative != 'N/A' && alternative.isNotEmpty)
+                              onTap: (alternative != 'N/A' &&
+                                      alternative.isNotEmpty)
                                   ? () {
                                       final altSearch =
                                           'https://www.google.com/search?q=${Uri.encodeComponent(alternative + " fertilizer")}&tbm=isch';
@@ -639,25 +748,35 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                                     iconBg: const Color(0xFFE8F5E9),
                                     label: "APPLICATION RATE",
                                     labelColor: const Color(0xFF2E7D32),
-                                    value: displayRate.isNotEmpty ? displayRate : 'N/A',
+                                    value: displayRate.isNotEmpty
+                                        ? displayRate
+                                        : 'N/A',
                                   ),
-                                  Divider(height: 24, color: Colors.grey.shade300),
+                                  Divider(
+                                      height: 24,
+                                      color: Colors.grey.shade300),
                                   _buildAppDetailRow(
                                     icon: Icons.water_drop,
                                     iconColor: const Color(0xFF1565C0),
                                     iconBg: const Color(0xFFE3F2FD),
                                     label: "MODE OF APPLICATION",
                                     labelColor: const Color(0xFF1565C0),
-                                    value: modeOfApplication.isNotEmpty ? modeOfApplication : 'N/A',
+                                    value: modeOfApplication.isNotEmpty
+                                        ? modeOfApplication
+                                        : 'N/A',
                                   ),
-                                  Divider(height: 24, color: Colors.grey.shade300),
+                                  Divider(
+                                      height: 24,
+                                      color: Colors.grey.shade300),
                                   _buildAppDetailRow(
                                     icon: Icons.calendar_month,
                                     iconColor: const Color(0xFF6A1B9A),
                                     iconBg: const Color(0xFFF3E5F5),
                                     label: "APPLICATION TIMING",
                                     labelColor: const Color(0xFF6A1B9A),
-                                    value: applicationTiming.isNotEmpty ? applicationTiming : 'N/A',
+                                    value: applicationTiming.isNotEmpty
+                                        ? applicationTiming
+                                        : 'N/A',
                                   ),
                                 ],
                               ),
@@ -676,7 +795,8 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                           Expanded(
                             child: OutlinedButton.icon(
                               onPressed: () async {
-                                if (_currentReading == null || _recommendationResult == null) {
+                                if (_currentReading == null ||
+                                    _recommendationResult == null) {
                                   return;
                                 }
                                 try {
@@ -696,9 +816,12 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                                     applicationRate: displayRate,
                                     modeOfApplication: modeOfApplication,
                                     applicationTiming: applicationTiming,
-                                    plotSize: hasSelectedArea ? selectedAreaSqm : null,
+                                    plotSize: hasSelectedArea
+                                        ? selectedAreaSqm
+                                        : null,
                                   );
-                                  await DatabaseHelper().insertRecommendation(reading);
+                                  await DatabaseHelper()
+                                      .insertRecommendation(reading);
 
                                   onHistorySaved?.call();
 
@@ -707,9 +830,11 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                                   }
 
                                   if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(
                                       const SnackBar(
-                                        content: Text('✅ Saved to history!'),
+                                        content:
+                                            Text('✅ Saved to history!'),
                                         backgroundColor: Colors.green,
                                         duration: Duration(seconds: 2),
                                         behavior: SnackBarBehavior.floating,
@@ -718,21 +843,27 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                                     );
                                   }
                                 } catch (e) {
-                                  debugPrint('Error saving to history: $e');
+                                  debugPrint(
+                                      'Error saving to history: $e');
                                 }
                               },
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: const Color(0xFF2E7D32),
-                                side: const BorderSide(color: Color(0xFF2E7D32), width: 1.5),
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                side: const BorderSide(
+                                    color: Color(0xFF2E7D32), width: 1.5),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30),
                                 ),
                               ),
-                              icon: const Icon(Icons.bookmark_border, size: 20),
+                              icon: const Icon(Icons.bookmark_border,
+                                  size: 20),
                               label: const Text(
                                 "Save in History",
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold),
                               ),
                             ),
                           ),
@@ -743,9 +874,11 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF43A047),
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
                                 elevation: 4,
-                                shadowColor: Colors.green.withOpacity(0.4),
+                                shadowColor:
+                                    Colors.green.withOpacity(0.4),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30),
                                 ),
@@ -753,7 +886,9 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                               icon: const Icon(Icons.check, size: 20),
                               label: const Text(
                                 "Got it",
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold),
                               ),
                             ),
                           ),
@@ -807,7 +942,8 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
         }
       }
 
-      converted = converted.replaceRange(match.start, match.end, formattedValue);
+      converted =
+          converted.replaceRange(match.start, match.end, formattedValue);
     }
 
     converted = converted.replaceAll('kg/ha', useGrams ? 'g' : 'kg');
@@ -946,8 +1082,10 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
       context: context,
       builder: (dialogContext) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -997,122 +1135,4 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                     _buildReminderBox(
                       icon: Icons.water_drop,
                       iconColor: const Color(0xFF1565C0),
-                      bgColor: const Color(0xFFE3F2FD),
-                      title: "Keep the soil moist,",
-                      subtitle: "but not waterlogged.",
-                    ),
-                    const SizedBox(height: 10),
-                    _buildReminderBox(
-                      icon: Icons.wb_sunny,
-                      iconColor: const Color(0xFF2E7D32),
-                      bgColor: const Color(0xFFE8F5E9),
-                      title: "Water early morning",
-                      subtitle: "or late afternoon.",
-                    ),
-                    const SizedBox(height: 10),
-                    _buildReminderBox(
-                      icon: Icons.warning_amber_rounded,
-                      iconColor: const Color(0xFFE65100),
-                      bgColor: const Color(0xFFFFF3E0),
-                      title: "Avoid waterlogging —",
-                      subtitle: "it causes root rot.",
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1565C0),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 32, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      "Got it",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildReminderBox({
-    required IconData icon,
-    required Color iconColor,
-    required Color bgColor,
-    required String title,
-    required String subtitle,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: iconColor,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: Colors.white, size: 18),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.black54,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _sensorSubscription?.cancel();
-    if (_bluetoothService.isConnected) _bluetoothService.disconnect();
-    super.dispose();
-  }
-}
+                      bgColor: const Color(0xFFE3F
