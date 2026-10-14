@@ -6,6 +6,9 @@ class BluetoothService {
   final FlutterBluetoothSerial _bluetooth = FlutterBluetoothSerial.instance;
   BluetoothConnection? _connection;
 
+  // I-SAVE ANG LAST CONNECTED DEVICE PARA SA AUTO-RECONNECT
+  BluetoothDevice? _lastConnectedDevice;
+
   // ============================================
   // CHECK IF BLUETOOTH IS ENABLED
   // ============================================
@@ -23,16 +26,10 @@ class BluetoothService {
   }
 
   // ============================================
-  // REQUEST TO ENABLE BLUETOOTH — FIXED!
-  // HUWAG GAMITIN ANG requestEnable() — NAG-E-EXIT SA APP
-  // SA HALIP, I-CHECK LANG KUNG NAKA-ON.
+  // REQUEST TO ENABLE BLUETOOTH
   // ============================================
   Future<bool> requestEnableBluetooth() async {
     try {
-      // HUWAG GAMITIN ANG _bluetooth.requestEnable() —
-      // NAG-O-OPEN ITO NG SYSTEM DIALOG NA NAG-E-EXIT SA APP
-      // KAPAG NAG-CANCEL ANG USER.
-      // SA HALIP, I-CHECK LANG KUNG NAKA-ON ANG BLUETOOTH.
       return await isBluetoothEnabled();
     } catch (e) {
       print('Error requesting Bluetooth: $e');
@@ -70,6 +67,12 @@ class BluetoothService {
   Future<bool> connect(BluetoothDevice device) async {
     try {
       _connection = await BluetoothConnection.toAddress(device.address);
+
+      // I-SAVE ANG DEVICE PARA SA AUTO-RECONNECT
+      if (_connection?.isConnected ?? false) {
+        _lastConnectedDevice = device;
+      }
+
       return _connection?.isConnected ?? false;
     } on PlatformException catch (e) {
       print('PlatformException during connect: $e');
@@ -79,6 +82,32 @@ class BluetoothService {
       return false;
     }
   }
+
+  // ============================================
+  // AUTO-RECONNECT SA LAST CONNECTED DEVICE
+  // ============================================
+  Future<bool> autoReconnect() async {
+    if (_lastConnectedDevice == null) {
+      print('⚠️ No last connected device to reconnect');
+      return false;
+    }
+
+    try {
+      print('🔄 Attempting to reconnect to ${_lastConnectedDevice!.name}...');
+      _connection = await BluetoothConnection.toAddress(
+        _lastConnectedDevice!.address,
+      );
+      return _connection?.isConnected ?? false;
+    } catch (e) {
+      print('❌ Auto-reconnect failed: $e');
+      return false;
+    }
+  }
+
+  // ============================================
+  // GET LAST CONNECTED DEVICE NAME
+  // ============================================
+  String? get connectedDeviceName => _lastConnectedDevice?.name;
 
   // ============================================
   // CHECK IF CONNECTED
@@ -95,9 +124,17 @@ class BluetoothService {
     try {
       _connection?.dispose();
       _connection = null;
+      // HUWAG I-CLEAR ANG _lastConnectedDevice PARA PWEDE PA RIN MAG-AUTO-RECONNECT
     } catch (e) {
       print('Error disconnecting: $e');
     }
+  }
+
+  // ============================================
+  // CLEAR LAST DEVICE (manual disconnect)
+  // ============================================
+  void clearLastDevice() {
+    _lastConnectedDevice = null;
   }
 
   // ============================================
