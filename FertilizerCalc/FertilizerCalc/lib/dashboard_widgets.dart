@@ -144,70 +144,127 @@ class DashboardWidgets {
         child: Column(
           children: [
             // ============================================
-            // HEADER — GREEN
+            // HEADER — background.png image
             // ============================================
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 50, 20, 25),
-              color: const Color(0xFF2E7D32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // TEXT.PNG — walang literal na FertilizerCalc text
-                  Image.asset(
-                    "images/text.png",
-                    height: 32,
-                    fit: BoxFit.contain,
-                    alignment: Alignment.centerLeft,
-                    errorBuilder: (context, error, stackTrace) {
-                      // Kung wala ang text.png, blangko na lang
-                      return const SizedBox.shrink();
-                    },
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    "v1.0.0",
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white70,
+            Stack(
+              children: [
+                // BACKGROUND IMAGE
+                Image.asset(
+                  "images/background.png",
+                  width: double.infinity,
+                  height: 220,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: 220,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.green.shade300,
+                            Colors.green.shade700,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.agriculture,
+                            size: 60, color: Colors.white),
+                      ),
+                    );
+                  },
+                ),
+
+                // DARK OVERLAY
+                Container(
+                  height: 220,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.15),
+                        Colors.black.withOpacity(0.45),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 14),
-                  // SENSOR STATUS CHIP — BLACK
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                ),
+
+                // CONTENT
+                Positioned.fill(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Container(
-                          width: 12,
-                          height: 12,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
+                        // TEXT.PNG
+                        Image.asset(
+                          "images/text.png",
+                          height: 32,
+                          fit: BoxFit.contain,
+                          alignment: Alignment.centerLeft,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          "v1.0.0",
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.white70,
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          logic.isConnected
-                              ? "Sensor Connected"
-                              : "No Sensor",
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                        const SizedBox(height: 12),
+                        // SENSOR STATUS CHIP — BLACK
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 12,
+                                height: 12,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                logic.isConnected
+                                    ? "Sensor Connected"
+                                    : "No Sensor",
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // SUBTITLE
+                        const Text(
+                          "Smart Soil Analysis &\nFertilizer Recommendation",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white70,
+                            height: 1.4,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 20),
