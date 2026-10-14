@@ -144,119 +144,141 @@ class DashboardWidgets {
         child: Column(
           children: [
             // ============================================
-            // HEADER — background.png + design.png
+            // HEADER — hardcoded green curve sa kanan
             // ============================================
             SizedBox(
               height: 260,
               child: Stack(
                 children: [
-                  // BACKGROUND IMAGE — puno ang buong header
+                  // BACKGROUND — light green gradient
                   Positioned.fill(
-                    child: Image.asset(
-                      "images/background.png",
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.green.shade100,
-                                Colors.green.shade700,
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                          ),
-                        );
-                      },
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFFF1F8E9), // very light green
+                            Color(0xFFDCEDC8), // light green
+                          ],
+                        ),
+                      ),
                     ),
                   ),
 
-                  // DESIGN.PNG — nasa kanan, pantay ang ibaba
+                  // GREEN CURVED DESIGN — right side (outer)
                   Positioned(
                     right: 0,
+                    top: 0,
                     bottom: 0,
+                    child: SizedBox(
+                      width: 220,
+                      child: ClipPath(
+                        clipper: _GreenCurveClipper(),
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Color(0xFF8BC34A), // light green
+                                Color(0xFF388E3C), // dark green
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // DARKER GREEN CURVE — inner overlay
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: SizedBox(
+                      width: 180,
+                      child: ClipPath(
+                        clipper: _DarkGreenCurveClipper(),
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Color(0xFF43A047),
+                                Color(0xFF1B5E20),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // TEXT.PNG — nasa taas-kaliwa
+                  Positioned(
+                    left: 20,
+                    top: 30,
                     child: Image.asset(
-                      "images/design.png",
-                      height: 180,
+                      "images/text.png",
+                      height: 55,
                       fit: BoxFit.contain,
-                      alignment: Alignment.bottomRight,
                       errorBuilder: (context, error, stackTrace) {
                         return const SizedBox.shrink();
                       },
                     ),
                   ),
 
-                  // CONTENT — text.png, subtitle, sensor chip
-                  Positioned.fill(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 30, 20, 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // TEXT.PNG / LOGO
-                          Image.asset(
-                            "images/text.png",
-                            height: 60,
-                            fit: BoxFit.contain,
-                            alignment: Alignment.centerLeft,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const SizedBox.shrink();
-                            },
-                          ),
+                  // SUBTITLE — nasa ibaba-kaliwa
+                  const Positioned(
+                    left: 20,
+                    bottom: 68,
+                    child: Text(
+                      "Smart Soil Analysis &\nFertilizer Recommendation",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1B5E20),
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
 
-                          // BOTTOM CONTENT
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // SUBTITLE
-                              const Text(
-                                "Smart Soil Analysis &\nFertilizer Recommendation",
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFF2E7D32),
-                                  height: 1.4,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              // SENSOR STATUS CHIP — GREEN
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF2E7D32),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 12,
-                                      height: 12,
-                                      decoration: BoxDecoration(
-                                        color: logic.isConnected
-                                            ? Colors.greenAccent
-                                            : Colors.grey.shade400,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      logic.isConnected
-                                          ? "Sensor Connected"
-                                          : "No Sensor",
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                  // SENSOR STATUS CHIP — nasa ibaba-kaliwa
+                  Positioned(
+                    left: 20,
+                    bottom: 20,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2E7D32),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: logic.isConnected
+                                  ? Colors.greenAccent
+                                  : Colors.grey.shade400,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            logic.isConnected
+                                ? "Sensor Connected"
+                                : "No Sensor",
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ],
                       ),
@@ -1031,4 +1053,52 @@ class DashboardWidgets {
       ),
     );
   }
+}
+
+// ==========================================================================
+// GREEN CURVE CLIPPER — outer curve
+// ==========================================================================
+class _GreenCurveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    // Start sa bottom-left
+    path.moveTo(0, size.height);
+    // Curve pataas pakanan
+    path.quadraticBezierTo(
+      size.width * 0.15, size.height * 0.15, // control point
+      size.width, 0,                          // end point (top-right)
+    );
+    // Pababa sa right side
+    path.lineTo(size.width, size.height);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
+// ==========================================================================
+// DARK GREEN CURVE CLIPPER — inner overlay
+// ==========================================================================
+class _DarkGreenCurveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    // Start sa bottom-left
+    path.moveTo(0, size.height);
+    // Curve pataas pakanan — mas matarik
+    path.quadraticBezierTo(
+      size.width * 0.05, size.height * 0.25, // control point
+      size.width, size.height * 0.1,          // end point
+    );
+    // Pababa sa right side
+    path.lineTo(size.width, size.height);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
