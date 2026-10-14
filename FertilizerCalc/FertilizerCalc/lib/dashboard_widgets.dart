@@ -222,7 +222,7 @@ class DashboardWidgets {
                     top: 130,
                     child: Image.asset(
                       "images/text.png",
-                      height: 39,
+                      height: 37,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
                         return const SizedBox.shrink();
