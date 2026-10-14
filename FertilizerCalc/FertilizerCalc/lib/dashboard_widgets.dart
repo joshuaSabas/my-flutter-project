@@ -144,127 +144,126 @@ class DashboardWidgets {
         child: Column(
           children: [
             // ============================================
-            // HEADER — background.png image
+            // HEADER — background.png + design.png
             // ============================================
-            Stack(
-              children: [
-                // BACKGROUND IMAGE
-                Image.asset(
-                  "images/background.png",
-                  width: double.infinity,
-                  height: 220,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 220,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.green.shade300,
-                            Colors.green.shade700,
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: const Center(
-                        child: Icon(Icons.agriculture,
-                            size: 60, color: Colors.white),
-                      ),
-                    );
-                  },
-                ),
-
-                // DARK OVERLAY
-                Container(
-                  height: 220,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.black.withOpacity(0.15),
-                        Colors.black.withOpacity(0.45),
-                      ],
+            SizedBox(
+              height: 260,
+              child: Stack(
+                children: [
+                  // BACKGROUND IMAGE — puno ang buong header
+                  Positioned.fill(
+                    child: Image.asset(
+                      "images/background.png",
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.green.shade100,
+                                Colors.green.shade700,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                ),
 
-                // CONTENT
-                Positioned.fill(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        // TEXT.PNG
-                        Image.asset(
-                          "images/text.png",
-                          height: 32,
-                          fit: BoxFit.contain,
-                          alignment: Alignment.centerLeft,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const SizedBox.shrink();
-                          },
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          "v1.0.0",
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.white70,
+                  // DESIGN.PNG — nasa kanan, pantay ang ibaba
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Image.asset(
+                      "images/design.png",
+                      height: 180,
+                      fit: BoxFit.contain,
+                      alignment: Alignment.bottomRight,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                  ),
+
+                  // CONTENT — text.png, subtitle, sensor chip
+                  Positioned.fill(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 30, 20, 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // TEXT.PNG / LOGO
+                          Image.asset(
+                            "images/text.png",
+                            height: 60,
+                            fit: BoxFit.contain,
+                            alignment: Alignment.centerLeft,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const SizedBox.shrink();
+                            },
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        // SENSOR STATUS CHIP — BLACK
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
+
+                          // BOTTOM CONTENT
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                width: 12,
-                                height: 12,
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
+                              // SUBTITLE
+                              const Text(
+                                "Smart Soil Analysis &\nFertilizer Recommendation",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF2E7D32),
+                                  height: 1.4,
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                logic.isConnected
-                                    ? "Sensor Connected"
-                                    : "No Sensor",
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                              const SizedBox(height: 12),
+                              // SENSOR STATUS CHIP — GREEN
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF2E7D32),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 12,
+                                      height: 12,
+                                      decoration: BoxDecoration(
+                                        color: logic.isConnected
+                                            ? Colors.greenAccent
+                                            : Colors.grey.shade400,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      logic.isConnected
+                                          ? "Sensor Connected"
+                                          : "No Sensor",
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        // SUBTITLE
-                        const Text(
-                          "Smart Soil Analysis &\nFertilizer Recommendation",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white70,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
 
             const SizedBox(height: 20),
