@@ -1135,4 +1135,122 @@ class DashboardLogic extends ChangeNotifier with WidgetsBindingObserver {
                     _buildReminderBox(
                       icon: Icons.water_drop,
                       iconColor: const Color(0xFF1565C0),
-                      bgColor: const Color(0xFFE3F
+                      bgColor: const Color(0xFFE3F2FD),
+                      title: "Keep the soil moist,",
+                      subtitle: "but not waterlogged.",
+                    ),
+                    const SizedBox(height: 10),
+                    _buildReminderBox(
+                      icon: Icons.wb_sunny,
+                      iconColor: const Color(0xFF2E7D32),
+                      bgColor: const Color(0xFFE8F5E9),
+                      title: "Water early morning",
+                      subtitle: "or late afternoon.",
+                    ),
+                    const SizedBox(height: 10),
+                    _buildReminderBox(
+                      icon: Icons.warning_amber_rounded,
+                      iconColor: const Color(0xFFE65100),
+                      bgColor: const Color(0xFFFFF3E0),
+                      title: "Avoid waterlogging —",
+                      subtitle: "it causes root rot.",
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1565C0),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      "Got it",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildReminderBox({
+    required IconData icon,
+    required Color iconColor,
+    required Color bgColor,
+    required String title,
+    required String subtitle,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: iconColor,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: Colors.white, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.black54,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _sensorSubscription?.cancel();
+    if (_bluetoothService.isConnected) _bluetoothService.disconnect();
+    super.dispose();
+  }
+}
