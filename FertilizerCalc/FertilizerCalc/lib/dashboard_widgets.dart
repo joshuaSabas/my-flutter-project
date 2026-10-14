@@ -218,11 +218,11 @@ class DashboardWidgets {
 
                   // TEXT.PNG — nasa taas-kaliwa
                   Positioned(
-                    left: 11,
-                    top: 132,
+                    left: 12,
+                    top: 155,
                     child: Image.asset(
                       "images/text.png",
-                      height: 37,
+                      height: 42,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
                         return const SizedBox.shrink();
@@ -233,7 +233,7 @@ class DashboardWidgets {
                   // SUBTITLE — nasa ibaba-kaliwa
                   const Positioned(
                     left: 20,
-                    bottom: 68,
+                    bottom: 100,
                     child: Text(
                       "Smart Soil Analysis &\nFertilizer Recommendation",
                       style: TextStyle(
@@ -248,7 +248,7 @@ class DashboardWidgets {
                   // SENSOR STATUS CHIP — nasa ibaba-kaliwa
                   Positioned(
                     left: 20,
-                    bottom: 20,
+                    bottom: 50,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 8),
