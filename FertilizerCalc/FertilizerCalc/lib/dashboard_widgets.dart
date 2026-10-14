@@ -219,7 +219,7 @@ class DashboardWidgets {
                   // TEXT.PNG — nasa taas-kaliwa
                   Positioned(
                     left: 20,
-                    top: 30,
+                    top: 130,
                     child: Image.asset(
                       "images/text.png",
                       height: 55,
