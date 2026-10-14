@@ -144,7 +144,7 @@ class DashboardWidgets {
         child: Column(
           children: [
             // ============================================
-            // HEADER — hardcoded green curve sa kanan
+            // HEADER — hardcoded green curve
             // ============================================
             SizedBox(
               height: 260,
@@ -158,15 +158,15 @@ class DashboardWidgets {
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            Color(0xFFF1F8E9), // very light green
-                            Color(0xFFDCEDC8), // light green
+                            Color(0xFFF1F8E9),
+                            Color(0xFFDCEDC8),
                           ],
                         ),
                       ),
                     ),
                   ),
 
-                  // GREEN CURVED DESIGN — right side (outer)
+                  // GREEN CURVED DESIGN — outer
                   Positioned(
                     right: 0,
                     top: 0,
@@ -181,8 +181,8 @@ class DashboardWidgets {
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                Color(0xFF8BC34A), // light green
-                                Color(0xFF388E3C), // dark green
+                                Color(0xFF8BC34A),
+                                Color(0xFF388E3C),
                               ],
                             ),
                           ),
@@ -191,7 +191,7 @@ class DashboardWidgets {
                     ),
                   ),
 
-                  // DARKER GREEN CURVE — inner overlay
+                  // DARKER GREEN CURVE — inner
                   Positioned(
                     right: 0,
                     top: 0,
@@ -216,10 +216,10 @@ class DashboardWidgets {
                     ),
                   ),
 
-                  // TEXT.PNG — nasa taas-kaliwa
+                  // TEXT.PNG
                   Positioned(
                     left: 12,
-                    top: 155,
+                    top: 70,
                     child: Image.asset(
                       "images/text.png",
                       height: 42,
@@ -230,10 +230,10 @@ class DashboardWidgets {
                     ),
                   ),
 
-                  // SUBTITLE — nasa ibaba-kaliwa
+                  // SUBTITLE
                   const Positioned(
                     left: 20,
-                    bottom: 100,
+                    top: 125,
                     child: Text(
                       "Smart Soil Analysis &\nFertilizer Recommendation",
                       style: TextStyle(
@@ -245,10 +245,10 @@ class DashboardWidgets {
                     ),
                   ),
 
-                  // SENSOR STATUS CHIP — nasa ibaba-kaliwa
+                  // SENSOR STATUS CHIP
                   Positioned(
                     left: 20,
-                    bottom: 50,
+                    top: 185,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 8),
@@ -1062,14 +1062,13 @@ class _GreenCurveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
-    // Start sa bottom-left
     path.moveTo(0, size.height);
-    // Curve pataas pakanan
     path.quadraticBezierTo(
-      size.width * 0.15, size.height * 0.15, // control point
-      size.width, 0,                          // end point (top-right)
+      size.width * 0.15,
+      size.height * 0.15,
+      size.width,
+      0,
     );
-    // Pababa sa right side
     path.lineTo(size.width, size.height);
     path.close();
     return path;
@@ -1086,14 +1085,13 @@ class _DarkGreenCurveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
-    // Start sa bottom-left
     path.moveTo(0, size.height);
-    // Curve pataas pakanan — mas matarik
     path.quadraticBezierTo(
-      size.width * 0.05, size.height * 0.25, // control point
-      size.width, size.height * 0.1,          // end point
+      size.width * 0.05,
+      size.height * 0.25,
+      size.width,
+      size.height * 0.1,
     );
-    // Pababa sa right side
     path.lineTo(size.width, size.height);
     path.close();
     return path;
