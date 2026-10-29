@@ -1,6 +1,7 @@
 import 'package:flutter_bluetooth_serial_plus/flutter_bluetooth_serial_plus.dart';
 import 'package:flutter/services.dart';
 import 'dart:typed_data';
+import 'dart:async'; // Kailangan para sa TimeoutException
 
 class BluetoothService {
   final FlutterBluetoothSerial _bluetooth = FlutterBluetoothSerial.instance;
@@ -38,12 +39,28 @@ class BluetoothService {
   }
 
   // ============================================
-  // SCAN FOR BLUETOOTH DEVICES
+  // SCAN FOR BLUETOOTH DEVICES (NAKA-FIX NA)
   // ============================================
   Future<List<BluetoothDiscoveryResult>> scanDevices() async {
     List<BluetoothDiscoveryResult> devices = [];
+    
     try {
-      await for (final result in _bluetooth.startDiscovery()) {
+      // 1. KUNIN MUNA ANG MGA PAIRED DEVICES (Tulad ng ESP32 mo na naka-pair na sa phone)
+      final pairedDevices = await _bluetooth.getBondedDevices();
+      for (var device in pairedDevices) {
+        // Dinadagdag natin sila sa listahan agad
+        devices.add(BluetoothDiscoveryResult(device: device, rssi: 0));
+      }
+
+      // 2. MAG-SCAN PARA SA MGA BAGONG DEVICES (May 8 seconds timeout para hindi mag-hang)
+      final scanStream = _bluetooth.startDiscovery().timeout(
+        const Duration(seconds: 8),
+        onTimeout: (sink) {
+          sink.close(); // Itigil ang scan pagkatapos ng 8 seconds
+        },
+      );
+
+      await for (final result in scanStream) {
         bool exists = devices.any(
           (e) => e.device.address == result.device.address,
         );
@@ -53,12 +70,14 @@ class BluetoothService {
       }
     } on PlatformException catch (e) {
       print('PlatformException during scan: $e');
-      return [];
+    } on TimeoutException {
+       print('Scan timed out, returning found devices.');
     } catch (e) {
       print('Error scanning devices: $e');
-      return [];
     }
-    return devices;
+    
+    // Ibalik lahat ng nahanap (paired + newly scanned)
+    return devices; 
   }
 
   // ============================================
