@@ -27,7 +27,7 @@ class DashboardWidgets {
                   const SizedBox(height: 12),
                   buildConnectCard(context, logic),
                   const SizedBox(height: 24),
-                  buildLiveSoilParameters(logic),
+                  buildLiveSoilParameters(context, logic),
                   const SizedBox(height: 24),
                   buildRecommendationCard(context, logic),
                   const SizedBox(height: 100),
@@ -143,14 +143,10 @@ class DashboardWidgets {
         color: Colors.white,
         child: Column(
           children: [
-            // ============================================
-            // HEADER — hardcoded green curve
-            // ============================================
             SizedBox(
               height: 260,
               child: Stack(
                 children: [
-                  // BACKGROUND — light green gradient
                   Positioned.fill(
                     child: Container(
                       decoration: const BoxDecoration(
@@ -165,8 +161,6 @@ class DashboardWidgets {
                       ),
                     ),
                   ),
-
-                  // GREEN CURVED DESIGN — outer
                   Positioned(
                     right: 0,
                     top: 0,
@@ -190,8 +184,6 @@ class DashboardWidgets {
                       ),
                     ),
                   ),
-
-                  // DARKER GREEN CURVE — inner
                   Positioned(
                     right: 0,
                     top: 0,
@@ -215,8 +207,6 @@ class DashboardWidgets {
                       ),
                     ),
                   ),
-
-                  // TEXT.PNG
                   Positioned(
                     left: 12,
                     top: 70,
@@ -229,8 +219,6 @@ class DashboardWidgets {
                       },
                     ),
                   ),
-
-                  // SUBTITLE
                   const Positioned(
                     left: 20,
                     top: 125,
@@ -244,8 +232,6 @@ class DashboardWidgets {
                       ),
                     ),
                   ),
-
-                  // SENSOR STATUS CHIP
                   Positioned(
                     left: 20,
                     top: 185,
@@ -287,12 +273,7 @@ class DashboardWidgets {
                 ],
               ),
             ),
-
             const SizedBox(height: 20),
-
-            // ============================================
-            // DIRECTIONS
-            // ============================================
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
@@ -335,12 +316,7 @@ class DashboardWidgets {
                 ),
               ),
             ),
-
             const SizedBox(height: 12),
-
-            // ============================================
-            // ABOUT US
-            // ============================================
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
@@ -389,12 +365,7 @@ class DashboardWidgets {
                 ),
               ),
             ),
-
             const Spacer(),
-
-            // ============================================
-            // FOOTER
-            // ============================================
             Container(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -546,7 +517,7 @@ class DashboardWidgets {
   // ============================================
   // LIVE SOIL PARAMETERS
   // ============================================
-  static Widget buildLiveSoilParameters(DashboardLogic logic) {
+  static Widget buildLiveSoilParameters(BuildContext context, DashboardLogic logic) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Column(
@@ -591,6 +562,7 @@ class DashboardWidgets {
           Row(
             children: [
               buildGaugeCard(
+                context: context,
                 title: "Soil Nitrogen",
                 subtitle: "(N)",
                 value: logic.currentReading?.nitrogen ?? "--",
@@ -613,6 +585,7 @@ class DashboardWidgets {
               ),
               const SizedBox(width: 12),
               buildGaugeCard(
+                context: context,
                 title: "Soil Phosphorus",
                 subtitle: "(P)",
                 value: logic.currentReading?.phosphorus ?? "--",
@@ -641,6 +614,7 @@ class DashboardWidgets {
           Row(
             children: [
               buildGaugeCard(
+                context: context,
                 title: "Soil Potassium",
                 subtitle: "(K)",
                 value: logic.currentReading?.potassium ?? "--",
@@ -665,6 +639,7 @@ class DashboardWidgets {
               ),
               const SizedBox(width: 12),
               buildGaugeCard(
+                context: context,
                 title: "Soil pH Level",
                 subtitle: "(pH)",
                 value: logic.currentReading?.ph ?? "--",
@@ -696,6 +671,7 @@ class DashboardWidgets {
   // GAUGE CARD
   // ============================================
   static Widget buildGaugeCard({
+    required BuildContext context,
     required String title,
     required String subtitle,
     required String value,
@@ -710,122 +686,255 @@ class DashboardWidgets {
     double progress = (numVal / maxValue).clamp(0.0, 1.0);
 
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.shade100,
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, size: 18, color: color),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: color,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        subtitle,
-                        style:
-                            const TextStyle(fontSize: 10, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                SizedBox(
-                  width: 100,
-                  height: 100,
-                  child: CircularProgressIndicator(
-                    value: progress,
-                    strokeWidth: 8,
-                    backgroundColor: Colors.grey.shade200,
-                    valueColor: AlwaysStoppedAnimation<Color>(color),
-                  ),
-                ),
-                Column(
-                  children: [
-                    Text(
-                      value,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    Text(
-                      unit,
-                      style: const TextStyle(fontSize: 10, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(12),
+      child: GestureDetector(
+        onTap: () {
+          _showParameterInfoDialog(context, title, value, unit, status, color, icon);
+        },
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.shade200),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.shade100,
+                blurRadius: 6,
+                offset: const Offset(0, 2),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+            ],
+          ),
+          child: Column(
+            children: [
+              Row(
                 children: [
-                  Icon(
-                    status == 'Optimal' || status == 'Neutral'
-                        ? Icons.check_circle
-                        : Icons.warning_amber_rounded,
-                    size: 12,
-                    color: statusColor,
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(icon, size: 18, color: color),
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    status,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: statusColor,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: color,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          subtitle,
+                          style:
+                              const TextStyle(fontSize: 10, color: Colors.grey),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    width: 100,
+                    height: 100,
+                    child: CircularProgressIndicator(
+                      value: progress,
+                      strokeWidth: 8,
+                      backgroundColor: Colors.grey.shade200,
+                      valueColor: AlwaysStoppedAnimation<Color>(color),
+                    ),
+                  ),
+                  Column(
+                    children: [
+                      Text(
+                        value,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      Text(
+                        unit,
+                        style: const TextStyle(fontSize: 10, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      status == 'Optimal' || status == 'Neutral'
+                          ? Icons.check_circle
+                          : Icons.warning_amber_rounded,
+                      size: 12,
+                      color: statusColor,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      status,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: statusColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  // ============================================
+  // PARAMETER INFO DIALOG
+  // ============================================
+  static void _showParameterInfoDialog(BuildContext context, String title, String value, String unit, String status, Color color, IconData icon) {
+    String description = "";
+
+    if (status.toLowerCase().contains('deficient')) {
+      description = "The soil has lower than the optimal amount of this nutrient. It may limit the healthy growth and yield of the Pechay crop.";
+    } else if (status.toLowerCase().contains('excess')) {
+      description = "The soil has higher than the optimal amount of this nutrient. This may cause nutrient imbalance and affect the plant's ability to absorb other essential nutrients.";
+    } else if (status.toLowerCase() == 'optimal' || status.toLowerCase() == 'neutral') {
+      description = "The soil nutrient level is within the recommended range for Pechay growth. No immediate action is required for this specific parameter.";
+    } else if (status.toLowerCase().contains('acidic')) {
+      description = "The soil pH is below the neutral level (7.0). Acidic soil can reduce the availability of essential nutrients like Phosphorus and can affect root development.";
+    } else if (status.toLowerCase().contains('alkaline')) {
+      description = "The soil pH is above the neutral level (7.0). Alkaline soil can make certain nutrients unavailable to the plants, affecting overall growth.";
+    } else {
+      description = "Current soil reading recorded.";
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: color, size: 35),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      unit,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    status.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  description,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    height: 1.5,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: color,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      "Got it",
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
