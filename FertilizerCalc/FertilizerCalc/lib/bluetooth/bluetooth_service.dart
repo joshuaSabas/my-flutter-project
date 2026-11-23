@@ -1,6 +1,7 @@
 import 'package:flutter_bluetooth_serial_plus/flutter_bluetooth_serial_plus.dart';
 import 'package:flutter/services.dart';
 import 'dart:typed_data';
+import 'dart:async'; // Idinagdag para sa TimeoutException
 
 class BluetoothService {
   final FlutterBluetoothSerial _bluetooth = FlutterBluetoothSerial.instance;
@@ -38,12 +39,27 @@ class BluetoothService {
   }
 
   // ============================================
-  // SCAN FOR BLUETOOTH DEVICES
+  // SCAN FOR BLUETOOTH DEVICES (5 SECONDS LIMIT)
   // ============================================
   Future<List<BluetoothDiscoveryResult>> scanDevices() async {
     List<BluetoothDiscoveryResult> devices = [];
+    
     try {
-      await for (final result in _bluetooth.startDiscovery()) {
+      // 1. KUNIN AGAD ANG MGA NAKA-PAIR (Para agad lumabas si Soil Sensor)
+      final pairedDevices = await _bluetooth.getBondedDevices();
+      for (var device in pairedDevices) {
+        devices.add(BluetoothDiscoveryResult(device: device, rssi: 0));
+      }
+
+      // 2. MAG-SCAN PERO 5 SEGUNDO LANG
+      final scanStream = _bluetooth.startDiscovery().timeout(
+        const Duration(seconds: 5),
+        onTimeout: (sink) {
+          sink.close(); // Itigil ang scan pagkatapos ng 5 seconds
+        },
+      );
+
+      await for (final result in scanStream) {
         bool exists = devices.any(
           (e) => e.device.address == result.device.address,
         );
@@ -53,12 +69,13 @@ class BluetoothService {
       }
     } on PlatformException catch (e) {
       print('PlatformException during scan: $e');
-      return [];
+    } on TimeoutException {
+      print('Scan timed out, returning found devices.');
     } catch (e) {
       print('Error scanning devices: $e');
-      return [];
     }
-    return devices;
+    
+    return devices; // Ibalik lahat ng nahanap (naka-pair + bago)
   }
 
   // ============================================
