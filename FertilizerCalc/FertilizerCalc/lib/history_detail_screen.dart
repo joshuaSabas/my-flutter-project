@@ -352,91 +352,104 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
             const SizedBox(height: 16),
 
             // ALTERNATIVE FERTILIZER
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade200),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.shade100,
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFFFF3E0),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.sync_alt,
-                            color: Color(0xFFE65100), size: 22),
-                      ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        "Alternative Fertilizer",
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFE65100),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFF3E0),
-                      borderRadius: BorderRadius.circular(14),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                if (alternative != 'N/A' && alternative.isNotEmpty) {
+                  // Gagawa ng Google Image Search URL base sa alternative fertilizer
+                  final altSearchUrl = 'https://www.google.com/search?q=${Uri.encodeComponent(alternative + " fertilizer")}&tbm=isch';
+                  _launchUrl(altSearchUrl);
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade200),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.shade100,
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
-                    child: Row(
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
                         Container(
-                          width: 52,
-                          height: 52,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
+                          width: 40,
+                          height: 40,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFFF3E0),
+                            shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.shopping_bag,
-                              size: 28, color: Color(0xFFFB8C00)),
+                          child: const Icon(Icons.sync_alt,
+                              color: Color(0xFFE65100), size: 22),
                         ),
                         const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                alternative,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFE65100),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              const Text(
-                                "Alternative option",
-                                style: TextStyle(
-                                    fontSize: 11, color: Colors.grey),
-                              ),
-                            ],
+                        const Text(
+                          "Alternative Fertilizer",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFE65100),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF3E0),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 52,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.shopping_bag,
+                                size: 28, color: Color(0xFFFB8C00)),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  alternative,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFE65100),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                const Text(
+                                  "Alternative option",
+                                  style: TextStyle(
+                                      fontSize: 11, color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // DAGDAG NA ICON PARA ALAM NG USER NA CLICKABLE
+                          if (alternative != 'N/A' && alternative.isNotEmpty)
+                            const Icon(Icons.chevron_right, size: 22, color: Color(0xFFFB8C00)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 
